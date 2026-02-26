@@ -6,8 +6,16 @@ import { LayoutDashboard, PlusCircle, FileBarChart } from "lucide-react";
 import { JobCreation } from "./components/dashboard/JobCreation";
 import { CandidateReport } from "./components/dashboard/CandidateReport";
 
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { Login } from "./components/auth/Login";
+import { Register } from "./components/auth/Register";
+import { LogOut } from "lucide-react";
+import { useAuth } from "./contexts/AuthContext";
+
 // Admin Layout Shell
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { logout, user } = useAuth();
   return (
     <div className="flex h-screen w-full bg-zinc-950 text-zinc-50 overflow-hidden font-sans">
       <nav className="w-64 border-r border-zinc-800 bg-zinc-950/50 flex flex-col p-4 gap-4">
@@ -18,7 +26,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           SmartHire Admin
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 flex-grow">
           <a
             href="/"
             className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
@@ -38,6 +46,18 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <FileBarChart className="w-4 h-4" /> View Report
           </a>
         </div>
+
+        <div className="border-t border-zinc-800 pt-4 mt-auto">
+          <div className="px-3 pb-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+            {user?.email || "Account"}
+          </div>
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-red-400 transition-colors text-left"
+          >
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
       </nav>
 
       <main className="flex-1 overflow-auto bg-zinc-950 relative">
@@ -55,38 +75,57 @@ export function App() {
   return (
     <div className="dark">
       <BrowserRouter>
-        <Routes>
-          {/* Admin Dashboard Routes */}
-          <Route
-            path="/"
-            element={
-              <AdminLayout>
-                <DashboardHome />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/create-job"
-            element={
-              <AdminLayout>
-                <JobCreation />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/report/:id"
-            element={
-              <AdminLayout>
-                <CandidateReport />
-              </AdminLayout>
-            }
-          />
+        <AuthProvider>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Candidate Interview Route (Isolated Layout) */}
-          <Route path="/interview" element={<InterviewWorkspace />} />
+            {/* Admin Dashboard Routes (Protected) */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <DashboardHome />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-job"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <JobCreation />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/report/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <CandidateReport />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Candidate Interview Route (Protected & Isolated Layout) */}
+            <Route
+              path="/interview"
+              element={
+                <ProtectedRoute>
+                  <InterviewWorkspace />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </div>
   );
