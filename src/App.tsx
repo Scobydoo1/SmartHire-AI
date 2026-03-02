@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./lib/cognito"; // Initialize AWS Amplify
 import { InterviewWorkspace } from "./components/interview/InterviewWorkspace";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
 import { LayoutDashboard, PlusCircle, FileBarChart } from "lucide-react";
@@ -11,11 +12,18 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Login } from "./components/auth/Login";
 import { Register } from "./components/auth/Register";
 import { LogOut, Loader2 } from "lucide-react";
-import { useAuthStore } from "./store/authStore";
+import { useAuthStore, type User } from "./store/authStore";
+import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
+import {
+  fetchAuthSession,
+  fetchUserAttributes,
+  signOut,
+} from "aws-amplify/auth";
+import { Hub } from "aws-amplify/utils";
 
 // Admin Layout Shell
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   return (
     <div className="flex h-screen w-full bg-zinc-950 text-zinc-50 overflow-hidden font-sans">
@@ -53,7 +61,13 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {user?.email || "Account"}
           </div>
           <button
-            onClick={logout}
+            onClick={async () => {
+              try {
+                await signOut();
+              } catch (err) {
+                console.error("Error signing out:", err);
+              }
+            }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-red-400 transition-colors text-left"
           >
             <LogOut className="w-4 h-4" /> Sign Out
@@ -96,46 +110,105 @@ const RootRoute: React.FC = () => {
   return <GuestDashboard />;
 };
 
+// AuthInitializer synchronizes Amplify auth state with Zustand
+const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    const checkUserSession = async () => {
+      try {
+        const session = await fetchAuthSession();
+        if (session.tokens) {
+          const attributes = await fetchUserAttributes();
+          const token = session.tokens.idToken?.toString() || "";
+
+          const loggedUser: User = {
+            id: attributes.sub || "",
+            email: attributes.email || "",
+            firstName: attributes.given_name || "User",
+            lastName: attributes.family_name || "",
+            role: "admin",
+          };
+          login(loggedUser, token);
+        } else {
+          logout();
+        }
+      } catch (error) {
+        console.error("Auth session check failed:", error);
+        logout();
+      }
+    };
+
+    // Check session on component mount
+    checkUserSession();
+
+    // Listen to Amplify Auth Hub events (login/logout from other tabs/components)
+    const unsubscribe = Hub.listen("auth", ({ payload }) => {
+      switch (payload.event) {
+        case "signedIn":
+          checkUserSession();
+          break;
+        case "signedOut":
+          logout();
+          break;
+        case "tokenRefresh_failure":
+          logout();
+          break;
+      }
+    });
+
+    return unsubscribe;
+  }, [login, logout]);
+
+  return <>{children}</>;
+};
+
 export function App() {
   return (
     <div className="dark">
-      <BrowserRouter>
-        <Routes>
-          {/* Public Auth Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+      <Toaster />
+      <AuthInitializer>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Root Conditional Route */}
-          <Route path="/" element={<RootRoute />} />
+            {/* Root Conditional Route */}
+            <Route path="/" element={<RootRoute />} />
 
-          {/* Admin Dashboard Routes (Protected) */}
-          <Route
-            path="/create-job"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <JobCreation />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/report/:id"
-            element={
-              <ProtectedRoute>
-                <AdminLayout>
-                  <CandidateReport />
-                </AdminLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Dashboard Routes (Protected) */}
+            <Route
+              path="/create-job"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <JobCreation />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/report/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <CandidateReport />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Candidate Interview Route (Public & Isolated Layout) */}
-          <Route path="/interview" element={<InterviewWorkspace />} />
+            {/* Candidate Interview Route (Public & Isolated Layout) */}
+            <Route path="/interview" element={<InterviewWorkspace />} />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthInitializer>
     </div>
   );
 }

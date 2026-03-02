@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist, devtools } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 
 // Define the User type based on your schema
 export interface User {
@@ -25,65 +25,50 @@ interface AuthState {
   setLoading: (isLoading: boolean) => void;
 }
 
-// Create the store with persist and devtools middlewares
+// Create the store with devtools middleware
 export const useAuthStore = create<AuthState>()(
   devtools(
-    persist(
-      (set) => ({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false,
+    (set) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: true, // Start in loading state until Amplify checks session
 
-        login: (user, token) =>
-          set(
-            {
-              user,
-              token,
-              isAuthenticated: true,
-              isLoading: false,
-            },
-            false,
-            "auth/login",
-          ),
+      login: (user, token) =>
+        set(
+          {
+            user,
+            token,
+            isAuthenticated: true,
+            isLoading: false,
+          },
+          false,
+          "auth/login",
+        ),
 
-        logout: () =>
-          set(
-            {
-              user: null,
-              token: null,
-              isAuthenticated: false,
-              isLoading: false,
-            },
-            false,
-            "auth/logout",
-          ),
+      logout: () =>
+        set(
+          {
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+          },
+          false,
+          "auth/logout",
+        ),
 
-        updateUser: (updatedUser) =>
-          set(
-            (state) => ({
-              user: state.user ? { ...state.user, ...updatedUser } : null,
-            }),
-            false,
-            "auth/updateUser",
-          ),
+      updateUser: (updatedUser) =>
+        set(
+          (state) => ({
+            user: state.user ? { ...state.user, ...updatedUser } : null,
+          }),
+          false,
+          "auth/updateUser",
+        ),
 
-        setLoading: (isLoading) => set({ isLoading }, false, "auth/setLoading"),
-      }),
-      {
-        name: "auth-storage", // name of the item in the storage (must be unique)
-        // You can customize storage here. Default is localStorage
-        // getStorage: () => sessionStorage,
-
-        // Optional: Filter what gets persisted
-        partialize: (state) => ({
-          user: state.user,
-          token: state.token,
-          isAuthenticated: state.isAuthenticated,
-          // We don't persist isLoading
-        }),
-      },
-    ),
+      setLoading: (isLoading) => set({ isLoading }, false, "auth/setLoading"),
+    }),
     { name: "AuthStore" }, // Name for Redux DevTools
   ),
 );

@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { useAuthStore, type User } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
+import {
+  signIn,
+  fetchUserAttributes,
+  fetchAuthSession,
+} from "aws-amplify/auth";
 import { AuthLayout } from "./AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +32,6 @@ const formSchema = z.object({
   }),
 });
 
-const generateMockId = () =>
-  "usr-" + Math.random().toString(36).substring(2, 11);
-
 export const Login: React.FC = () => {
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
@@ -50,27 +52,44 @@ export const Login: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate network request
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Call AWS Amplify SignIn
+      const { isSignedIn, nextStep } = await signIn({
+        username: values.email,
+        password: values.password,
+      });
 
-      // Mock JWT token & User Response
-      const mockToken =
-        "jwt.header." +
-        btoa(`{"sub":"123","email":"${values.email}"}`) +
-        ".signature";
-      const mockUser: User = {
-        id: generateMockId(),
-        email: values.email,
-        firstName: "Demo",
-        lastName: "User",
-        role: "admin",
-      };
+      if (isSignedIn) {
+        // Fetch JWT Token
+        const session = await fetchAuthSession();
+        const token = session.tokens?.idToken?.toString() || "";
 
-      login(mockUser, mockToken);
-      toast.success("Successfully logged in");
-      navigate("/");
+        // Fetch User Attributes from Cognito
+        const attributes = await fetchUserAttributes();
+
+        const loggedUser: User = {
+          id: attributes.sub || "",
+          email: attributes.email || values.email,
+          firstName: attributes.given_name || "User",
+          lastName: attributes.family_name || "",
+          role: "admin", // Depending on your setup, role might come from groups or custom attributes
+        };
+
+        login(loggedUser, token);
+        toast.success("Successfully logged in");
+        navigate("/");
+      } else {
+        // Handle nextStep (e.g., MFA required, New Password required)
+        if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
+          toast.error(
+            "Vui lòng kiểm tra email để xác nhận tài khoản trước khi đăng nhập.",
+          );
+        } else {
+          toast.info(`Additional step required: ${nextStep.signInStep}`);
+        }
+      }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to login");
+    } finally {
       setIsSubmitting(false);
     }
   };

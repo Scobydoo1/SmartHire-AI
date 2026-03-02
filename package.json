@@ -13,6 +13,8 @@
     "@hookform/resolvers": "^5.2.2",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.1.17",
+    "amazon-cognito-identity-js": "^6.3.16",
+    "aws-amplify": "^6.16.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
