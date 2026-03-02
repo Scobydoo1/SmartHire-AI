@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useAuth, type AuthUser } from "../../contexts/AuthContext";
+import { useAuthStore, type User } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,8 @@ const generateMockId = () =>
   "usr-" + Math.random().toString(36).substring(2, 11);
 
 export const Login: React.FC = () => {
-  const { login } = useAuth();
+  const login = useAuthStore((state) => state.login);
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,14 +58,17 @@ export const Login: React.FC = () => {
         "jwt.header." +
         btoa(`{"sub":"123","email":"${values.email}"}`) +
         ".signature";
-      const mockUser: AuthUser = {
+      const mockUser: User = {
         id: generateMockId(),
         email: values.email,
+        firstName: "Demo",
+        lastName: "User",
         role: "admin",
       };
 
-      login(mockToken, mockUser);
-      // useAuth `.login()` handles navigation to the redirect URI or '/'
+      login(mockUser, mockToken);
+      toast.success("Successfully logged in");
+      navigate("/");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to login");
       setIsSubmitting(false);

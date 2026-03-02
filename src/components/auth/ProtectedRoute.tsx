@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuthStore } from "@/store/authStore";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -8,7 +8,8 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
   const location = useLocation();
 
   if (isLoading) {

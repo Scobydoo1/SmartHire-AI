@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useAuth, type AuthUser } from "../../contexts/AuthContext";
+import { useAuthStore, type User } from "@/store/authStore";
+import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User as UserIcon,
+  Eye,
+  EyeOff,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +45,8 @@ const formSchema = z.object({
 });
 
 export const Register: React.FC = () => {
-  const { login } = useAuth();
+  const login = useAuthStore((state) => state.login);
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -80,15 +89,17 @@ export const Register: React.FC = () => {
         "jwt.header." +
         btoa(`{"sub":"123","email":"${values.email}"}`) +
         ".signature";
-      const mockUser: AuthUser = {
+      const mockUser: User = {
         id: "usr-" + Math.random().toString(36).substring(2, 11),
         email: values.email,
+        firstName: values.name.split(" ")[0] || "New",
+        lastName: values.name.split(" ").slice(1).join(" ") || "User",
         role: "admin",
       };
 
       toast.success("Account created successfully!");
-      login(mockToken, mockUser);
-      // useAuth `.login()` handles navigation to the redirect URI or '/'
+      login(mockUser, mockToken);
+      navigate("/");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to register";
@@ -129,7 +140,7 @@ export const Register: React.FC = () => {
                 <FormLabel className="text-zinc-300 ml-1">Full Name</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                     <Input
                       placeholder="Jane Doe"
                       className="pl-10 bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"

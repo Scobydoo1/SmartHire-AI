@@ -6,16 +6,17 @@ import { LayoutDashboard, PlusCircle, FileBarChart } from "lucide-react";
 import { JobCreation } from "./components/dashboard/JobCreation";
 import { CandidateReport } from "./components/dashboard/CandidateReport";
 
-import { AuthProvider } from "./contexts/AuthContext";
+import { GuestDashboard } from "./components/dashboard/GuestDashboard";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Login } from "./components/auth/Login";
 import { Register } from "./components/auth/Register";
-import { LogOut } from "lucide-react";
-import { useAuth } from "./contexts/AuthContext";
+import { LogOut, Loader2 } from "lucide-react";
+import { useAuthStore } from "./store/authStore";
 
 // Admin Layout Shell
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { logout, user } = useAuth();
+  const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   return (
     <div className="flex h-screen w-full bg-zinc-950 text-zinc-50 overflow-hidden font-sans">
       <nav className="w-64 border-r border-zinc-800 bg-zinc-950/50 flex flex-col p-4 gap-4">
@@ -71,61 +72,69 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+// Root Route handler to direct users to Guest or Admin Dashboard based on auth status
+const RootRoute: React.FC = () => {
+  const user = useAuthStore((state) => state.user);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-zinc-950 text-emerald-500 border">
+        <Loader2 className="w-10 h-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <AdminLayout>
+        <DashboardHome />
+      </AdminLayout>
+    );
+  }
+
+  return <GuestDashboard />;
+};
+
 export function App() {
   return (
     <div className="dark">
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+        <Routes>
+          {/* Public Auth Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-            {/* Admin Dashboard Routes (Protected) */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <DashboardHome />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/create-job"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <JobCreation />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/report/:id"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <CandidateReport />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
+          {/* Root Conditional Route */}
+          <Route path="/" element={<RootRoute />} />
 
-            {/* Candidate Interview Route (Protected & Isolated Layout) */}
-            <Route
-              path="/interview"
-              element={
-                <ProtectedRoute>
-                  <InterviewWorkspace />
-                </ProtectedRoute>
-              }
-            />
+          {/* Admin Dashboard Routes (Protected) */}
+          <Route
+            path="/create-job"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <JobCreation />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/report/:id"
+            element={
+              <ProtectedRoute>
+                <AdminLayout>
+                  <CandidateReport />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </AuthProvider>
+          {/* Candidate Interview Route (Public & Isolated Layout) */}
+          <Route path="/interview" element={<InterviewWorkspace />} />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </BrowserRouter>
     </div>
   );
