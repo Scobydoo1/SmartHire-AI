@@ -5,6 +5,7 @@ import {
   signIn,
   fetchUserAttributes,
   fetchAuthSession,
+  signInWithRedirect,
 } from "aws-amplify/auth";
 import { AuthLayout } from "./AuthLayout";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,14 @@ export const Login: React.FC = () => {
       toast.error(err instanceof Error ? err.message : "Failed to login");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithRedirect({ provider: "Google" });
+    } catch (error) {
+      console.error("Lỗi khi mở Google Login:", error);
     }
   };
 
@@ -193,6 +202,44 @@ export const Login: React.FC = () => {
             ) : (
               "Sign In"
             )}
+          </Button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-zinc-800" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-zinc-950 px-2 text-zinc-500">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleLogin}
+            className="w-full bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white h-11 flex items-center justify-center gap-2"
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+              <path
+                d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.25024 6.65L5.25524 9.765C6.20524 6.845 8.86028 4.75 12.0003 4.75Z"
+                fill="#EA4335"
+              />
+              <path
+                d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z"
+                fill="#4285F4"
+              />
+              <path
+                d="M5.25498 14.235C5.01498 13.505 4.86998 12.725 4.86998 11.925C4.86998 11.125 5.01498 10.345 5.25498 9.615L1.23998 6.51C0.43998 8.1 0 9.945 0 11.925C0 13.905 0.43998 15.75 1.23998 17.34L5.25498 14.235Z"
+                fill="#FBBC05"
+              />
+              <path
+                d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L16.0804 18.095C15.0054 18.82 13.6204 19.245 12.0004 19.245C8.86037 19.245 6.20537 17.155 5.25537 14.235L1.25037 17.35C3.25537 21.31 7.31037 24.0001 12.0004 24.0001Z"
+                fill="#34A853"
+              />
+            </svg>
+            Google
           </Button>
 
           <div className="mt-6 text-center text-sm text-zinc-500">

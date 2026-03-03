@@ -103,8 +103,7 @@ export const Register: React.FC = () => {
         options: {
           userAttributes: {
             email: values.email,
-            given_name: values.name.split(" ")[0] || "New",
-            family_name: values.name.split(" ").slice(1).join(" ") || "User",
+            name: values.name,
           },
         },
       });
