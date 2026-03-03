@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import "./lib/cognito"; // Initialize AWS Amplify
 import { InterviewWorkspace } from "./components/interview/InterviewWorkspace";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
@@ -36,24 +36,24 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
 
         <div className="flex flex-col gap-2 flex-grow">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
           >
             <LayoutDashboard className="w-4 h-4" /> Dashboard
-          </a>
-          <a
-            href="/create-job"
+          </Link>
+          <Link
+            to="/create-job"
             className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
           >
             <PlusCircle className="w-4 h-4" /> Create Job
-          </a>
-          <a
-            href="/report/demo"
+          </Link>
+          <Link
+            to="/report/demo"
             className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
           >
             <FileBarChart className="w-4 h-4" /> View Report
-          </a>
+          </Link>
         </div>
 
         <div className="border-t border-zinc-800 pt-4 mt-auto">

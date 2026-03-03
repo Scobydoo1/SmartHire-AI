@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowRight, Video, ShieldCheck, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export const GuestDashboard: React.FC = () => {
   const [inviteCode, setInviteCode] = useState("");
@@ -105,12 +105,12 @@ export const GuestDashboard: React.FC = () => {
         <div className="mt-16 text-center">
           <p className="text-sm text-zinc-500">
             Are you a recruiter?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
             >
               Sign in to your dashboard
-            </a>
+            </Link>
           </p>
         </div>
       </div>

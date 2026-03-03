@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuthStore, type User } from "@/store/authStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   signIn,
   fetchUserAttributes,
@@ -157,12 +157,12 @@ export const Login: React.FC = () => {
               <FormItem className="space-y-1">
                 <div className="flex justify-between items-center ml-1">
                   <FormLabel className="text-zinc-300">Password</FormLabel>
-                  <a
-                    href="#"
+                  <Link
+                    to="#"
                     className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors"
                   >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
                 <FormControl>
                   <div className="relative">
@@ -244,12 +244,12 @@ export const Login: React.FC = () => {
 
           <div className="mt-6 text-center text-sm text-zinc-500">
             Don't have an account?{" "}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
             >
               Request early access
-            </a>
+            </Link>
           </div>
         </form>
       </Form>

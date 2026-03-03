@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { signUp, confirmSignUp } from "aws-amplify/auth";
 import { AuthLayout } from "./AuthLayout";
 import { Button } from "@/components/ui/button";
@@ -338,12 +338,12 @@ export const Register: React.FC = () => {
 
           <div className="mt-6 text-center text-sm text-zinc-500">
             Already have an account?{" "}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
             >
               Sign In Instead
-            </a>
+            </Link>
           </div>
         </form>
       </Form>

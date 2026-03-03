@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -162,12 +163,12 @@ export const DashboardHome: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-right text-zinc-500 text-sm">
                     {session.status === "Completed" ? (
-                      <a
-                        href={`/report/${session.id}`}
+                      <Link
+                        to={`/report/${session.id}`}
                         className="text-emerald-500 hover:text-emerald-400 font-medium"
                       >
                         View Report
-                      </a>
+                      </Link>
                     ) : (
                       session.progress
                     )}
