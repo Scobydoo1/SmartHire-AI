@@ -1,92 +1,25 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./lib/cognito"; // Initialize AWS Amplify
 import { InterviewWorkspace } from "./components/interview/InterviewWorkspace";
 import { DashboardHome } from "./components/dashboard/DashboardHome";
-import { LayoutDashboard, PlusCircle, FileBarChart } from "lucide-react";
 import { JobCreation } from "./components/dashboard/JobCreation";
 import { CandidateReport } from "./components/dashboard/CandidateReport";
 
 import { GuestDashboard } from "./components/dashboard/GuestDashboard";
+import { CandidateDashboard } from "./components/dashboard/CandidateDashboard";
+import { RecruiterDashboard } from "./components/dashboard/RecruiterDashboard";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { Login } from "./components/auth/Login";
 import { Register } from "./components/auth/Register";
-import { LogOut, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuthStore, type User } from "./store/authStore";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
-import {
-  fetchAuthSession,
-  fetchUserAttributes,
-  signOut,
-} from "aws-amplify/auth";
+import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 
-// Admin Layout Shell
-const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const user = useAuthStore((state) => state.user);
-  return (
-    <div className="flex h-screen w-full bg-zinc-950 text-zinc-50 overflow-hidden font-sans">
-      <nav className="w-64 border-r border-zinc-800 bg-zinc-950/50 flex flex-col p-4 gap-4">
-        <div className="font-bold text-xl text-zinc-100 mb-6 flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-emerald-500 flex items-center justify-center text-zinc-950 text-sm">
-            SH
-          </div>
-          SmartHire Admin
-        </div>
-
-        <div className="flex flex-col gap-2 flex-grow">
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
-          >
-            <LayoutDashboard className="w-4 h-4" /> Dashboard
-          </Link>
-          <Link
-            to="/create-job"
-            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
-          >
-            <PlusCircle className="w-4 h-4" /> Create Job
-          </Link>
-          <Link
-            to="/report/demo"
-            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-zinc-50 transition-colors"
-          >
-            <FileBarChart className="w-4 h-4" /> View Report
-          </Link>
-        </div>
-
-        <div className="border-t border-zinc-800 pt-4 mt-auto">
-          <div className="px-3 pb-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-            {user?.email || "Account"}
-          </div>
-          <button
-            onClick={async () => {
-              try {
-                await signOut();
-              } catch (err) {
-                console.error("Error signing out:", err);
-              }
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-zinc-800 text-sm font-medium text-zinc-300 hover:text-red-400 transition-colors text-left"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
-        </div>
-      </nav>
-
-      <main className="flex-1 overflow-auto bg-zinc-950 relative">
-        {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 blur-[120px] rounded-full pointer-events-none" />
-
-        <div className="relative z-10 w-full h-full p-8">{children}</div>
-      </main>
-    </div>
-  );
-};
-
-// Root Route handler to direct users to Guest or Admin Dashboard based on auth status
+// Root Route handler to direct users based on role
 const RootRoute: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -99,15 +32,25 @@ const RootRoute: React.FC = () => {
     );
   }
 
-  if (user) {
-    return (
-      <AdminLayout>
-        <DashboardHome />
-      </AdminLayout>
-    );
+  // Not authenticated - show guest dashboard
+  if (!user) {
+    return <GuestDashboard />;
   }
 
-  return <GuestDashboard />;
+  // Route based on user role
+  switch (user.role) {
+    case "candidate":
+      return <CandidateDashboard />;
+
+    case "recruiter":
+      return <RecruiterDashboard />;
+
+    case "admin":
+      return <DashboardHome />;
+
+    default:
+      return <GuestDashboard />;
+  }
 };
 
 // AuthInitializer synchronizes Amplify auth state with Zustand
@@ -125,12 +68,27 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
           const attributes = await fetchUserAttributes();
           const token = session.tokens.idToken?.toString() || "";
 
+          // Get role from Cognito custom attributes or groups
+          // Default to 'candidate' if no role is specified
+          let userRole: "admin" | "recruiter" | "candidate" = "candidate";
+
+          if (attributes["custom:role"]) {
+            const role = attributes["custom:role"];
+            if (
+              role === "admin" ||
+              role === "recruiter" ||
+              role === "candidate"
+            ) {
+              userRole = role;
+            }
+          }
+
           const loggedUser: User = {
             id: attributes.sub || "",
             email: attributes.email || "",
             firstName: attributes.given_name || "User",
             lastName: attributes.family_name || "",
-            role: "admin",
+            role: userRole,
           };
           login(loggedUser, token);
         } else {
@@ -177,27 +135,23 @@ export function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Root Conditional Route */}
+            {/* Root Conditional Route - Routes based on role */}
             <Route path="/" element={<RootRoute />} />
 
-            {/* Admin Dashboard Routes (Protected) */}
+            {/* Recruiter/Admin Dashboard Routes (Protected) */}
             <Route
               path="/create-job"
               element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <JobCreation />
-                  </AdminLayout>
+                <ProtectedRoute allowedRoles={["recruiter", "admin"]}>
+                  <JobCreation />
                 </ProtectedRoute>
               }
             />
             <Route
               path="/report/:id"
               element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <CandidateReport />
-                  </AdminLayout>
+                <ProtectedRoute allowedRoles={["recruiter", "admin"]}>
+                  <CandidateReport />
                 </ProtectedRoute>
               }
             />

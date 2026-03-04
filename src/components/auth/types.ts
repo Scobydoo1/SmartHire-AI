@@ -31,6 +31,7 @@ export interface ProtectedRouteProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   requiredRole?: User["role"];
+  allowedRoles?: User["role"][];
 }
 
 export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {

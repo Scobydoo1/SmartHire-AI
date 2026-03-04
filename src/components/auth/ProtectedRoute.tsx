@@ -7,7 +7,7 @@
  * - Proper accessibility attributes
  */
 
-import React, { memo } from "react";
+import { memo } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { Loader2 } from "lucide-react";
@@ -32,8 +32,8 @@ const LoadingState = memo<{ message?: string }>(({ message }) => (
 LoadingState.displayName = "LoadingState";
 
 // Memoized unauthorized component
-const UnauthorizedState = memo<{ requiredRole?: string }>(
-  ({ requiredRole }) => (
+const UnauthorizedState = memo<{ allowedRoles?: string[] }>(
+  ({ allowedRoles }) => (
     <div
       className="flex h-screen w-full items-center justify-center bg-zinc-950"
       role="alert"
@@ -57,8 +57,8 @@ const UnauthorizedState = memo<{ requiredRole?: string }>(
         </div>
         <h2 className="text-2xl font-bold text-zinc-50">Access Denied</h2>
         <p className="text-zinc-400">
-          {requiredRole
-            ? `You need ${requiredRole} role to access this page.`
+          {allowedRoles && allowedRoles.length > 0
+            ? `You need one of these roles to access this page: ${allowedRoles.join(", ")}`
             : "You don't have permission to access this page."}
         </p>
       </div>
@@ -68,7 +68,7 @@ const UnauthorizedState = memo<{ requiredRole?: string }>(
 UnauthorizedState.displayName = "UnauthorizedState";
 
 export const ProtectedRoute = memo<ProtectedRouteProps>(
-  ({ children, fallback, requiredRole }) => {
+  ({ children, fallback, requiredRole, allowedRoles }) => {
     const user = useAuthStore((state) => state.user);
     const isLoading = useAuthStore((state) => state.isLoading);
     const location = useLocation();
@@ -83,9 +83,18 @@ export const ProtectedRoute = memo<ProtectedRouteProps>(
       return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    // Check role-based access if required
+    // Check role-based access if required (single role)
     if (requiredRole && user.role !== requiredRole) {
-      return <UnauthorizedState requiredRole={requiredRole} />;
+      return <UnauthorizedState allowedRoles={[requiredRole]} />;
+    }
+
+    // Check role-based access if required (multiple roles)
+    if (
+      allowedRoles &&
+      allowedRoles.length > 0 &&
+      !allowedRoles.includes(user.role)
+    ) {
+      return <UnauthorizedState allowedRoles={allowedRoles} />;
     }
 
     // Render protected content
