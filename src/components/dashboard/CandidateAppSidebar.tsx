@@ -10,13 +10,16 @@ import {
   FileText,
   Home,
   LogOut,
+  Moon,
   Settings,
+  Sun,
   User,
   Video,
 } from "lucide-react";
 import { signOut } from "aws-amplify/auth";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { useTheme } from "@/components/theme";
 
 import {
   Sidebar,
@@ -104,14 +107,13 @@ const CandidateAppSidebarComponent = () => {
     }
   }, []);
 
+  const { resolvedTheme, toggleTheme } = useTheme();
+
   // Memoize navigation items to prevent unnecessary re-renders
   const navigationItems = useMemo(() => navigationConfig, []);
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="h-screen bg-zinc-950 text-sidebar-primary-foreground"
-    >
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -231,6 +233,11 @@ const CandidateAppSidebarComponent = () => {
                     <Settings />
                     Settings
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {resolvedTheme === "dark" ? <Sun /> : <Moon />}
+                  {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>

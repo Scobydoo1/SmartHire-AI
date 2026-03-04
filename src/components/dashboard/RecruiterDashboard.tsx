@@ -59,6 +59,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { RecruiterAppSidebar } from "./RecruiterAppSidebar";
+import { ThemeToggle } from "@/components/theme";
 
 // Types
 interface JobPosting {
@@ -355,6 +356,7 @@ export const RecruiterDashboard = memo(() => {
             </BreadcrumbList>
           </Breadcrumb>
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle variant="dropdown" />
             <Button
               variant="ghost"
               size="icon"

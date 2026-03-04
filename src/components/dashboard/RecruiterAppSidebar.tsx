@@ -10,8 +10,10 @@ import {
   Calendar,
   Home,
   LogOut,
+  Moon,
   PlusCircle,
   Settings,
+  Sun,
   User,
   Users,
   BarChart3,
@@ -19,6 +21,7 @@ import {
 import { signOut } from "aws-amplify/auth";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { useTheme } from "@/components/theme";
 
 import {
   Sidebar,
@@ -132,6 +135,8 @@ const RecruiterAppSidebarComponent = () => {
     }
   }, []);
 
+  const { resolvedTheme, toggleTheme } = useTheme();
+
   // Memoize navigation items to prevent unnecessary re-renders
   const navigationItems = useMemo(() => navigationConfig, []);
 
@@ -164,7 +169,11 @@ const RecruiterAppSidebarComponent = () => {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                    >
                       <Link to={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
@@ -202,7 +211,7 @@ const RecruiterAppSidebarComponent = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-background">
+      <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -213,7 +222,9 @@ const RecruiterAppSidebarComponent = () => {
                     <AvatarFallback>{getUserInitials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{userDisplayName}</span>
+                    <span className="truncate font-semibold">
+                      {userDisplayName}
+                    </span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                 </SidebarMenuButton>
@@ -231,8 +242,12 @@ const RecruiterAppSidebarComponent = () => {
                       <AvatarFallback>{getUserInitials}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{userDisplayName}</span>
-                      <span className="truncate text-xs">{isAdmin ? "Administrator" : "Recruiter"}</span>
+                      <span className="truncate font-semibold">
+                        {userDisplayName}
+                      </span>
+                      <span className="truncate text-xs">
+                        {isAdmin ? "Administrator" : "Recruiter"}
+                      </span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
@@ -248,6 +263,11 @@ const RecruiterAppSidebarComponent = () => {
                     <Settings />
                     Settings
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleTheme}>
+                  {resolvedTheme === "dark" ? <Sun /> : <Moon />}
+                  {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>

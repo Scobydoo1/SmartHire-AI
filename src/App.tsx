@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
 import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
+import { ThemeProvider } from "@/components/theme";
 
 // Root Route handler to direct users based on role
 const RootRoute: React.FC = () => {
@@ -126,7 +127,7 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
 
 export function App() {
   return (
-    <div className="dark">
+    <ThemeProvider defaultTheme="dark">
       <Toaster />
       <AuthInitializer>
         <BrowserRouter>
@@ -163,7 +164,7 @@ export function App() {
           </Routes>
         </BrowserRouter>
       </AuthInitializer>
-    </div>
+    </ThemeProvider>
   );
 }
 
