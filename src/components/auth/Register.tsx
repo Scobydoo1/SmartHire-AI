@@ -166,10 +166,10 @@ ConfirmationStep.displayName = "ConfirmationStep";
 // Registration Header Component
 const RegistrationHeader = memo(() => (
   <div className="flex flex-col gap-2 mb-8 text-center md:text-left">
-    <h2 className="text-3xl font-bold tracking-tight text-zinc-50">
+    <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
       Create an account
     </h2>
-    <p className="text-zinc-400 text-sm">
+    <p className="text-zinc-500 dark:text-zinc-400 text-sm">
       Enter your details below to request early access.
     </p>
   </div>
@@ -178,7 +178,7 @@ RegistrationHeader.displayName = "RegistrationHeader";
 
 // Registration Footer Component
 const RegistrationFooter = memo(() => (
-  <div className="mt-6 text-center text-sm text-zinc-500">
+  <div className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
     Already have an account?{" "}
     <Link
       to="/login"

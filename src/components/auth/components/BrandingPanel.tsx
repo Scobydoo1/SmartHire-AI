@@ -3,19 +3,11 @@
  *
  * Left-hand marketing column shown on auth pages (Login, Register, …).
  * Follows the active theme – light or dark – via Tailwind dark: variants.
- *
- * Sub-component tree:
- *   <BrandingPanel>
- *     <GlowEffects />        – decorative ambient blobs (aria-hidden)
- *     <BrandLogo />          – logo mark + wordmark, links to "/"
- *     <MarketingContent>
- *       <SocialProof />      – avatar stack + member count
- *     </MarketingContent>
- *   </BrandingPanel>
  */
 
-import { memo } from "react";
+import { memo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Sparkles, Zap, ShieldCheck } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,19 +17,26 @@ import { Link } from "react-router-dom";
 const AVATAR_SEEDS = [123, 246, 369, 492] as const;
 
 // ---------------------------------------------------------------------------
-// GlowEffects
+// FeaturePill
 // ---------------------------------------------------------------------------
 
-/** Decorative ambient colour blobs. Purely visual – hidden from a11y tree. */
-const GlowEffects = memo(function GlowEffects() {
+interface FeaturePillProps {
+  icon: ReactNode;
+  label: string;
+}
+
+const FeaturePill = memo(function FeaturePill({
+  icon,
+  label,
+}: FeaturePillProps) {
   return (
-    <div aria-hidden="true" className="pointer-events-none">
-      <div className="absolute top-0 right-0 w-100 h-100 bg-emerald-500/10 blur-[120px] rounded-full" />
-      <div className="absolute bottom-0 left-0 w-100 h-100 bg-blue-500/10 blur-[120px] rounded-full" />
-    </div>
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50">
+      {icon}
+      {label}
+    </span>
   );
 });
-GlowEffects.displayName = "GlowEffects";
+FeaturePill.displayName = "FeaturePill";
 
 // ---------------------------------------------------------------------------
 // BrandLogo
@@ -72,13 +71,12 @@ BrandLogo.displayName = "BrandLogo";
 /** Avatar stack with member-count copy. */
 const SocialProof = memo(function SocialProof() {
   return (
-    <div className="flex gap-4 items-center">
-      {/* Avatar stack */}
-      <div className="flex -space-x-4" aria-hidden="true">
+    <div className="flex items-center gap-4">
+      <div className="flex -space-x-3" aria-hidden="true">
         {AVATAR_SEEDS.map((seed) => (
           <div
             key={seed}
-            className="w-10 h-10 rounded-full border-2 border-zinc-200 dark:border-zinc-950 bg-zinc-300 dark:bg-zinc-800 flex items-center justify-center overflow-hidden"
+            className="w-9 h-9 rounded-full border-2 border-white dark:border-zinc-900 bg-zinc-200 dark:bg-zinc-800 overflow-hidden ring-1 ring-zinc-200/50 dark:ring-zinc-700/50"
           >
             <img
               src={`https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=18181b`}
@@ -90,40 +88,92 @@ const SocialProof = memo(function SocialProof() {
           </div>
         ))}
       </div>
-
-      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-        Join{" "}
-        <strong className="font-bold text-zinc-800 dark:text-zinc-200">
-          10,000+
-        </strong>{" "}
-        elite engineering teams.
-      </p>
+      <div>
+        <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+          10,000+ teams
+        </p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          already hiring smarter
+        </p>
+      </div>
     </div>
   );
 });
 SocialProof.displayName = "SocialProof";
 
 // ---------------------------------------------------------------------------
+// StatsRow
+// ---------------------------------------------------------------------------
+
+const STATS = [
+  { value: "4×", label: "Faster hiring" },
+  { value: "98%", label: "Accuracy" },
+  { value: "60%", label: "Cost reduction" },
+] as const;
+
+const StatsRow = memo(function StatsRow() {
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {STATS.map(({ value, label }) => (
+        <div key={label} className="flex flex-col gap-0.5">
+          <span className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
+            {value}
+          </span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+            {label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+});
+StatsRow.displayName = "StatsRow";
+
+// ---------------------------------------------------------------------------
 // MarketingContent
 // ---------------------------------------------------------------------------
 
-/** Hero headline, sub-copy and social-proof block. */
 const MarketingContent = memo(function MarketingContent() {
   return (
-    <div className="relative z-10 max-w-md mt-auto mb-auto">
-      <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 leading-tight text-zinc-900 dark:text-zinc-50">
-        Recruitment, <br />
-        <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-emerald-600">
-          amplified by intelligence.
-        </span>
-      </h1>
+    <div className="relative z-10 flex flex-col gap-8 max-w-sm">
+      {/* Feature pills */}
+      <div className="flex flex-wrap gap-2">
+        <FeaturePill
+          icon={<Sparkles className="w-3 h-3" />}
+          label="AI-powered"
+        />
+        <FeaturePill icon={<Zap className="w-3 h-3" />} label="Real-time" />
+        <FeaturePill
+          icon={<ShieldCheck className="w-3 h-3" />}
+          label="Bias-free"
+        />
+      </div>
 
-      <p className="text-zinc-500 dark:text-zinc-400 text-lg leading-relaxed mb-8">
-        Create precise engineering interviews in seconds. Analyse thousands of
-        candidates autonomously. Let AI handle the screening, so you can focus
-        on building the team.
-      </p>
+      {/* Headline */}
+      <div>
+        <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1] text-zinc-900 dark:text-zinc-50 mb-4">
+          Recruitment,
+          <br />
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-500 via-emerald-400 to-teal-400">
+            amplified by intelligence.
+          </span>
+        </h1>
+        <p className="text-base text-zinc-500 dark:text-zinc-400 leading-relaxed">
+          Create precise engineering interviews in seconds. Let AI screen
+          thousands of candidates so you can focus on building the team.
+        </p>
+      </div>
 
+      {/* Emerald divider */}
+      <div className="h-px bg-linear-to-r from-zinc-200 via-emerald-300/50 to-transparent dark:from-zinc-800 dark:via-emerald-700/30 dark:to-transparent" />
+
+      {/* Stats */}
+      <StatsRow />
+
+      {/* Neutral divider */}
+      <div className="h-px bg-linear-to-r from-zinc-200 to-transparent dark:from-zinc-800 dark:to-transparent" />
+
+      {/* Social proof */}
       <SocialProof />
     </div>
   );
@@ -131,24 +181,15 @@ const MarketingContent = memo(function MarketingContent() {
 MarketingContent.displayName = "MarketingContent";
 
 // ---------------------------------------------------------------------------
-// BrandingPanel  (public export)
+// BrandingPanel
 // ---------------------------------------------------------------------------
 
-/**
- * Full left-panel branding column for auth pages.
- *
- * @example
- * ```tsx
- * <BrandingPanel />
- * ```
- */
 export const BrandingPanel = memo(function BrandingPanel() {
   return (
     <aside
-      className="hidden md:flex flex-col relative w-1/2 p-12 border-r border-zinc-200 dark:border-zinc-900 justify-between items-start bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 overflow-hidden"
+      className="hidden lg:flex flex-col w-full max-w-125 h-full py-12 justify-center gap-14 items-start text-zinc-900 dark:text-zinc-50 shrink-0 relative z-10"
       aria-label="SmartHire AI branding"
     >
-      <GlowEffects />
       <BrandLogo />
       <MarketingContent />
     </aside>
