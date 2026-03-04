@@ -44,7 +44,7 @@ export const useAuthLogin = (): UseAuthFormReturn<LoginFormData> => {
             email: attributes.email || values.email,
             firstName: attributes.given_name || "User",
             lastName: attributes.family_name || "",
-            role: "admin",
+            role: "recruiter",
           };
 
           login(loggedUser, token);

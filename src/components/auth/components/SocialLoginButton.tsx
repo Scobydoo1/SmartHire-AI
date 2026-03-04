@@ -48,7 +48,7 @@ export const SocialLoginButton = memo<SocialLoginButtonProps>(
         variant="outline"
         onClick={onClick}
         disabled={isLoading}
-        className={`w-full bg-zinc-900 border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white h-11 flex items-center justify-center gap-2 ${className}`}
+        className={`w-full bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white h-11 flex items-center justify-center gap-2 ${className}`}
         aria-label={`Sign in with ${provider}`}
       >
         {ProviderIcons[provider]}

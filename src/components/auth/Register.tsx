@@ -85,12 +85,15 @@ const ConfirmationStep = memo<ConfirmationStepProps>(
     return (
       <>
         <div className="flex flex-col gap-2 mb-8 text-center md:text-left">
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-50">
+          <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             Check your email
           </h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">
             We've sent a 6-digit verification code to{" "}
-            <span className="text-white font-medium">{registeredEmail}</span>.
+            <span className="text-zinc-900 dark:text-white font-medium">
+              {registeredEmail}
+            </span>
+            .
           </p>
         </div>
 
@@ -105,14 +108,17 @@ const ConfirmationStep = memo<ConfirmationStepProps>(
               name="code"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel htmlFor="code" className="text-zinc-300 ml-1">
+                  <FormLabel
+                    htmlFor="code"
+                    className="text-zinc-700 dark:text-zinc-300 ml-1"
+                  >
                     Verification Code
                   </FormLabel>
                   <FormControl>
                     <Input
                       id="code"
                       placeholder="123456"
-                      className="bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-emerald-500/50 text-center tracking-widest text-lg"
+                      className="bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50 text-center tracking-widest text-lg"
                       maxLength={6}
                       autoComplete="one-time-code"
                       inputMode="numeric"
@@ -244,20 +250,23 @@ export const Register = memo(() => {
             name="name"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel htmlFor="name" className="text-zinc-300 ml-1">
+                <FormLabel
+                  htmlFor="name"
+                  className="text-zinc-700 dark:text-zinc-300 ml-1"
+                >
                   Full Name
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <UserIcon
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500"
                       aria-hidden="true"
                     />
                     <Input
                       id="name"
                       placeholder="Jane Doe"
                       autoComplete="name"
-                      className="pl-10 bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
+                      className="pl-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
                       aria-invalid={!!form.formState.errors.name}
                       aria-describedby={
                         form.formState.errors.name ? "name-error" : undefined
@@ -277,13 +286,16 @@ export const Register = memo(() => {
             name="email"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel htmlFor="email" className="text-zinc-300 ml-1">
+                <FormLabel
+                  htmlFor="email"
+                  className="text-zinc-700 dark:text-zinc-300 ml-1"
+                >
                   Work Email
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500"
                       aria-hidden="true"
                     />
                     <Input
@@ -291,7 +303,7 @@ export const Register = memo(() => {
                       type="email"
                       placeholder="name@company.com"
                       autoComplete="email"
-                      className="pl-10 bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
+                      className="pl-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
                       aria-invalid={!!form.formState.errors.email}
                       aria-describedby={
                         form.formState.errors.email ? "email-error" : undefined
@@ -311,7 +323,10 @@ export const Register = memo(() => {
             name="password"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel htmlFor="password" className="text-zinc-300 ml-1">
+                <FormLabel
+                  htmlFor="password"
+                  className="text-zinc-700 dark:text-zinc-300 ml-1"
+                >
                   Password
                 </FormLabel>
                 <FormControl>

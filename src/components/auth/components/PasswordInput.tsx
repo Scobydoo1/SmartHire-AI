@@ -25,19 +25,21 @@ export const PasswordInput = memo<PasswordInputProps>(
       <div className="relative">
         {showIcon && (
           <Lock
-            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 ${iconClassName}`}
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500 ${iconClassName}`}
           />
         )}
         <Input
           type={showPassword ? "text" : "password"}
-          className={`${showIcon ? "pl-10" : ""} pr-10 bg-zinc-900 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus-visible:ring-emerald-500/50`}
+          className={`${
+            showIcon ? "pl-10" : ""
+          } pr-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50`}
           value={value}
           {...props}
         />
         <button
           type="button"
           onClick={togglePassword}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors flex items-center justify-center p-1"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors flex items-center justify-center p-1"
           title={showPassword ? "Hide password" : "Show password"}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
