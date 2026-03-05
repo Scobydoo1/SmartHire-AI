@@ -4,31 +4,29 @@
  * Optimized with React.memo
  */
 
-import { memo } from "react";
-import { Link } from "react-router-dom";
+import { memo } from 'react'
+import { Link } from 'react-router-dom'
 
 interface MobileLogoProps {
-  appName?: string;
-  className?: string;
+  appName?: string
+  className?: string
 }
 
-export const MobileLogo = memo<MobileLogoProps>(
-  ({ appName = "SmartHire AI", className = "" }) => {
-    return (
-      <Link
-        to="/"
-        className={`flex flex-col items-center mb-8 md:hidden ${className} group`}
-        aria-label="SmartHire AI – go to home"
-      >
-        <div className="w-10 h-10 mb-4 rounded-xl bg-emerald-500 flex items-center justify-center text-zinc-950 font-bold">
-          SH
-        </div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
-          {appName}
-        </h1>
-      </Link>
-    );
-  },
-);
+export const MobileLogo = memo<MobileLogoProps>(({ appName = 'SmartHire AI', className = '' }) => {
+  return (
+    <Link
+      to="/"
+      className={`mb-8 flex flex-col items-center md:hidden ${className} group`}
+      aria-label="SmartHire AI – go to home"
+    >
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 font-bold text-zinc-950">
+        SH
+      </div>
+      <h1 className="text-2xl font-bold text-zinc-900 transition-colors group-hover:text-emerald-500 dark:text-zinc-100 dark:group-hover:text-emerald-400">
+        {appName}
+      </h1>
+    </Link>
+  )
+})
 
-MobileLogo.displayName = "MobileLogo";
+MobileLogo.displayName = 'MobileLogo'

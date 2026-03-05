@@ -1,129 +1,123 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import "./lib/cognito"; // Initialize AWS Amplify
-import { InterviewWorkspace } from "./components/interview/InterviewWorkspace";
-import { DashboardHome } from "./components/dashboard/DashboardHome";
-import { JobCreation } from "./components/dashboard/JobCreation";
-import { CandidateReport } from "./components/dashboard/CandidateReport";
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import './lib/cognito' // Initialize AWS Amplify
+import { InterviewWorkspace } from './components/interview/InterviewWorkspace'
+import { DashboardHome } from './components/dashboard/DashboardHome'
+import { JobCreation } from './components/dashboard/JobCreation'
+import { CandidateReport } from './components/dashboard/CandidateReport'
 
-import { GuestDashboard } from "./components/dashboard/GuestDashboard";
-import { CandidateDashboard } from "./components/dashboard/CandidateDashboard";
-import { RecruiterDashboard } from "./components/dashboard/RecruiterDashboard";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { Login } from "./components/auth/Login";
-import { Register } from "./components/auth/Register";
-import { Loader2 } from "lucide-react";
-import { useAuthStore, type User } from "./store/authStore";
-import { Toaster } from "@/components/ui/sonner";
-import { useEffect } from "react";
-import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
-import { Hub } from "aws-amplify/utils";
-import { ThemeProvider } from "@/components/theme";
+import { GuestDashboard } from './components/dashboard/GuestDashboard'
+import { CandidateDashboard } from './components/dashboard/CandidateDashboard'
+import { RecruiterDashboard } from './components/dashboard/RecruiterDashboard'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { Login } from './components/auth/Login'
+import { Register } from './components/auth/Register'
+import { Loader2 } from 'lucide-react'
+import { useAuthStore, type User } from './store/authStore'
+import { Toaster } from '@/components/ui/sonner'
+import { useEffect } from 'react'
+import { fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth'
+import { Hub } from 'aws-amplify/utils'
+import { ThemeProvider } from '@/components/theme'
 
 // Root Route handler to direct users based on role
 const RootRoute: React.FC = () => {
-  const user = useAuthStore((state) => state.user);
-  const isLoading = useAuthStore((state) => state.isLoading);
+  const user = useAuthStore((state) => state.user)
+  const isLoading = useAuthStore((state) => state.isLoading)
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-zinc-950 text-emerald-500 border">
-        <Loader2 className="w-10 h-10 animate-spin" />
+      <div className="flex h-screen w-full items-center justify-center border bg-zinc-950 text-emerald-500">
+        <Loader2 className="h-10 w-10 animate-spin" />
       </div>
-    );
+    )
   }
 
   // Not authenticated - show guest dashboard
   if (!user) {
-    return <GuestDashboard />;
+    return <GuestDashboard />
   }
 
   // Route based on user role
   switch (user.role) {
-    case "candidate":
-      return <CandidateDashboard />;
+    case 'candidate':
+      return <CandidateDashboard />
 
-    case "recruiter":
-      return <RecruiterDashboard />;
+    case 'recruiter':
+      return <RecruiterDashboard />
 
-    case "admin":
-      return <DashboardHome />;
+    case 'admin':
+      return <DashboardHome />
 
     default:
-      return <GuestDashboard />;
+      return <GuestDashboard />
   }
-};
+}
 
 // AuthInitializer synchronizes Amplify auth state with Zustand
-const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const login = useAuthStore((state) => state.login);
-  const logout = useAuthStore((state) => state.logout);
+const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const login = useAuthStore((state) => state.login)
+  const logout = useAuthStore((state) => state.logout)
 
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        const session = await fetchAuthSession();
+        const session = await fetchAuthSession()
         if (session.tokens) {
-          const attributes = await fetchUserAttributes();
-          const token = session.tokens.idToken?.toString() || "";
+          const attributes = await fetchUserAttributes()
+          const token = session.tokens.idToken?.toString() || ''
 
           // Get role from Cognito custom attributes or groups
           // Default to 'candidate' if no role is specified
-          let userRole: "admin" | "recruiter" | "candidate" = "candidate";
+          let userRole: 'admin' | 'recruiter' | 'candidate' = 'candidate'
 
-          if (attributes["custom:role"]) {
-            const role = attributes["custom:role"];
-            if (
-              role === "admin" ||
-              role === "recruiter" ||
-              role === "candidate"
-            ) {
-              userRole = role;
+          if (attributes['custom:role']) {
+            const role = attributes['custom:role']
+            if (role === 'admin' || role === 'recruiter' || role === 'candidate') {
+              userRole = role
             }
           }
 
           const loggedUser: User = {
-            id: attributes.sub || "",
-            email: attributes.email || "",
-            firstName: attributes.given_name || "User",
-            lastName: attributes.family_name || "",
+            id: attributes.sub || '',
+            email: attributes.email || '',
+            firstName: attributes.given_name || 'User',
+            lastName: attributes.family_name || '',
             role: userRole,
-          };
-          login(loggedUser, token);
+          }
+          login(loggedUser, token)
         } else {
-          logout();
+          logout()
         }
       } catch (error) {
-        console.error("Auth session check failed:", error);
-        logout();
+        console.error('Auth session check failed:', error)
+        logout()
       }
-    };
+    }
 
     // Check session on component mount
-    checkUserSession();
+    checkUserSession()
 
     // Listen to Amplify Auth Hub events (login/logout from other tabs/components)
-    const unsubscribe = Hub.listen("auth", ({ payload }) => {
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
       switch (payload.event) {
-        case "signedIn":
-          checkUserSession();
-          break;
-        case "signedOut":
-          logout();
-          break;
-        case "tokenRefresh_failure":
-          logout();
-          break;
+        case 'signedIn':
+          checkUserSession()
+          break
+        case 'signedOut':
+          logout()
+          break
+        case 'tokenRefresh_failure':
+          logout()
+          break
       }
-    });
+    })
 
-    return unsubscribe;
-  }, [login, logout]);
+    return unsubscribe
+  }, [login, logout])
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}
 
 export function App() {
   return (
@@ -143,7 +137,7 @@ export function App() {
             <Route
               path="/create-job"
               element={
-                <ProtectedRoute allowedRoles={["recruiter", "admin"]}>
+                <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
                   <JobCreation />
                 </ProtectedRoute>
               }
@@ -151,7 +145,7 @@ export function App() {
             <Route
               path="/report/:id"
               element={
-                <ProtectedRoute allowedRoles={["recruiter", "admin"]}>
+                <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
                   <CandidateReport />
                 </ProtectedRoute>
               }
@@ -165,7 +159,7 @@ export function App() {
         </BrowserRouter>
       </AuthInitializer>
     </ThemeProvider>
-  );
+  )
 }
 
-export default App;
+export default App

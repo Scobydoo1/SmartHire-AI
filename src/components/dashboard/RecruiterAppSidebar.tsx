@@ -3,8 +3,8 @@
  * Sidebar navigation for recruiter/admin dashboard using shadcn/ui Sidebar
  */
 
-import { memo, useMemo, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { memo, useMemo, useCallback } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import {
   Briefcase,
   Calendar,
@@ -17,11 +17,11 @@ import {
   User,
   Users,
   BarChart3,
-} from "lucide-react";
-import { signOut } from "aws-amplify/auth";
-import { useAuthStore } from "@/store/authStore";
-import { toast } from "sonner";
-import { useTheme } from "@/components/theme";
+} from 'lucide-react'
+import { signOut } from 'aws-amplify/auth'
+import { useAuthStore } from '@/store/authStore'
+import { toast } from 'sonner'
+import { useTheme } from '@/components/theme'
 
 import {
   Sidebar,
@@ -34,8 +34,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from '@/components/ui/sidebar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,102 +43,102 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 
 // Navigation items configuration
 // Structured format with role-based access
 const navigationConfig = [
   {
-    id: "dashboard",
-    title: "Dashboard",
-    url: "/",
+    id: 'dashboard',
+    title: 'Dashboard',
+    url: '/',
     icon: Home,
-    description: "Overview and analytics",
-    roles: ["recruiter", "admin"],
+    description: 'Overview and analytics',
+    roles: ['recruiter', 'admin'],
   },
   {
-    id: "jobs",
-    title: "Jobs",
-    url: "/jobs",
+    id: 'jobs',
+    title: 'Jobs',
+    url: '/jobs',
     icon: Briefcase,
-    description: "Manage job postings",
-    roles: ["recruiter", "admin"],
+    description: 'Manage job postings',
+    roles: ['recruiter', 'admin'],
   },
   {
-    id: "create-job",
-    title: "Create Job",
-    url: "/create-job",
+    id: 'create-job',
+    title: 'Create Job',
+    url: '/create-job',
     icon: PlusCircle,
-    description: "Post a new job opening",
-    roles: ["recruiter", "admin"],
+    description: 'Post a new job opening',
+    roles: ['recruiter', 'admin'],
   },
   {
-    id: "candidates",
-    title: "Candidates",
-    url: "/candidates",
+    id: 'candidates',
+    title: 'Candidates',
+    url: '/candidates',
     icon: Users,
-    description: "View candidate pipeline",
-    roles: ["recruiter", "admin"],
+    description: 'View candidate pipeline',
+    roles: ['recruiter', 'admin'],
   },
   {
-    id: "schedule",
-    title: "Schedule",
-    url: "/schedule",
+    id: 'schedule',
+    title: 'Schedule',
+    url: '/schedule',
     icon: Calendar,
-    description: "Interview scheduling",
-    roles: ["recruiter", "admin"],
+    description: 'Interview scheduling',
+    roles: ['recruiter', 'admin'],
   },
   {
-    id: "reports",
-    title: "Reports",
-    url: "/report/demo",
+    id: 'reports',
+    title: 'Reports',
+    url: '/report/demo',
     icon: BarChart3,
-    description: "View reports and metrics",
-    roles: ["recruiter", "admin"],
+    description: 'View reports and metrics',
+    roles: ['recruiter', 'admin'],
   },
-] as const;
+] as const
 
 const RecruiterAppSidebarComponent = () => {
-  const location = useLocation();
-  const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "admin";
+  const location = useLocation()
+  const user = useAuthStore((state) => state.user)
+  const isAdmin = user?.role === 'admin'
 
   // Memoize user initials for performance
   const getUserInitials = useMemo(() => {
     if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
     }
-    return user?.email?.[0].toUpperCase() || "U";
-  }, [user]);
+    return user?.email?.[0].toUpperCase() || 'U'
+  }, [user])
 
   // Memoize user display name
   const userDisplayName = useMemo(() => {
     if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
+      return `${user.firstName} ${user.lastName}`
     }
-    return user?.email || "User";
-  }, [user]);
+    return user?.email || 'User'
+  }, [user])
 
   // Memoize role label
   const roleLabel = useMemo(() => {
-    return isAdmin ? "Admin Panel" : "Recruiter Portal";
-  }, [isAdmin]);
+    return isAdmin ? 'Admin Panel' : 'Recruiter Portal'
+  }, [isAdmin])
 
   // Optimized sign out handler with feedback
   const handleSignOut = useCallback(async () => {
     try {
-      await signOut();
-      toast.success("Signed out successfully");
+      await signOut()
+      toast.success('Signed out successfully')
     } catch (err) {
-      console.error("Error signing out:", err);
-      toast.error("Failed to sign out. Please try again.");
+      console.error('Error signing out:', err)
+      toast.error('Failed to sign out. Please try again.')
     }
-  }, []);
+  }, [])
 
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme()
 
   // Memoize navigation items to prevent unnecessary re-renders
-  const navigationItems = useMemo(() => navigationConfig, []);
+  const navigationItems = useMemo(() => navigationConfig, [])
 
   return (
     <Sidebar collapsible="icon">
@@ -147,7 +147,7 @@ const RecruiterAppSidebarComponent = () => {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-500 text-sidebar-primary-foreground">
+                <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-500">
                   <span className="font-semibold">SH</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -166,21 +166,17 @@ const RecruiterAppSidebarComponent = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname === item.url
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
-                    >
+                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                       <Link to={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
+                )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -222,9 +218,7 @@ const RecruiterAppSidebarComponent = () => {
                     <AvatarFallback>{getUserInitials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {userDisplayName}
-                    </span>
+                    <span className="truncate font-semibold">{userDisplayName}</span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                 </SidebarMenuButton>
@@ -242,11 +236,9 @@ const RecruiterAppSidebarComponent = () => {
                       <AvatarFallback>{getUserInitials}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">
-                        {userDisplayName}
-                      </span>
+                      <span className="truncate font-semibold">{userDisplayName}</span>
                       <span className="truncate text-xs">
-                        {isAdmin ? "Administrator" : "Recruiter"}
+                        {isAdmin ? 'Administrator' : 'Recruiter'}
                       </span>
                     </div>
                   </div>
@@ -266,8 +258,8 @@ const RecruiterAppSidebarComponent = () => {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={toggleTheme}>
-                  {resolvedTheme === "dark" ? <Sun /> : <Moon />}
-                  {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                  {resolvedTheme === 'dark' ? <Sun /> : <Moon />}
+                  {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
@@ -280,7 +272,7 @@ const RecruiterAppSidebarComponent = () => {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
-};
+  )
+}
 
-export const RecruiterAppSidebar = memo(RecruiterAppSidebarComponent);
+export const RecruiterAppSidebar = memo(RecruiterAppSidebarComponent)

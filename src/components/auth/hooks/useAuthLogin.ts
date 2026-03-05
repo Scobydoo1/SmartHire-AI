@@ -3,84 +3,78 @@
  * Separates business logic from UI components
  */
 
-import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  signIn,
-  fetchUserAttributes,
-  fetchAuthSession,
-} from "aws-amplify/auth";
-import { useAuthStore, type User } from "@/store/authStore";
-import { toast } from "sonner";
-import type { LoginFormData, UseAuthFormReturn } from "../types";
+import { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { signIn, fetchUserAttributes, fetchAuthSession } from 'aws-amplify/auth'
+import { useAuthStore, type User } from '@/store/authStore'
+import { toast } from 'sonner'
+import type { LoginFormData, UseAuthFormReturn } from '../types'
 
 export const useAuthLogin = (): UseAuthFormReturn<LoginFormData> => {
-  const login = useAuthStore((state) => state.login);
-  const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const login = useAuthStore((state) => state.login)
+  const navigate = useNavigate()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const onSubmit = useCallback(
     async (values: LoginFormData) => {
-      setIsSubmitting(true);
-      setError(null);
+      setIsSubmitting(true)
+      setError(null)
 
       try {
         const { isSignedIn, nextStep } = await signIn({
           username: values.email,
           password: values.password,
-        });
+        })
 
         if (isSignedIn) {
           // Fetch JWT Token
-          const session = await fetchAuthSession();
-          const token = session.tokens?.idToken?.toString() || "";
+          const session = await fetchAuthSession()
+          const token = session.tokens?.idToken?.toString() || ''
 
           // Fetch User Attributes from Cognito
-          const attributes = await fetchUserAttributes();
+          const attributes = await fetchUserAttributes()
 
           const loggedUser: User = {
-            id: attributes.sub || "",
+            id: attributes.sub || '',
             email: attributes.email || values.email,
-            firstName: attributes.given_name || "User",
-            lastName: attributes.family_name || "",
-            role: "recruiter",
-          };
+            firstName: attributes.given_name || 'User',
+            lastName: attributes.family_name || '',
+            role: 'recruiter',
+          }
 
-          login(loggedUser, token);
-          toast.success("Successfully logged in");
-          navigate("/");
+          login(loggedUser, token)
+          toast.success('Successfully logged in')
+          navigate('/')
         } else {
           // Handle additional authentication steps
-          if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
-            const errorMsg =
-              "Please confirm your account via email before logging in.";
-            setError(errorMsg);
-            toast.error(errorMsg);
+          if (nextStep.signInStep === 'CONFIRM_SIGN_UP') {
+            const errorMsg = 'Please confirm your account via email before logging in.'
+            setError(errorMsg)
+            toast.error(errorMsg)
           } else {
-            toast.info(`Additional step required: ${nextStep.signInStep}`);
+            toast.info(`Additional step required: ${nextStep.signInStep}`)
           }
         }
       } catch (err: unknown) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to login";
-        setError(errorMessage);
-        toast.error(errorMessage);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to login'
+        setError(errorMessage)
+        toast.error(errorMessage)
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     },
     [login, navigate],
-  );
+  )
 
   const clearError = useCallback(() => {
-    setError(null);
-  }, []);
+    setError(null)
+  }, [])
 
   return {
     isSubmitting,
     onSubmit,
     error,
     clearError,
-  };
-};
+  }
+}

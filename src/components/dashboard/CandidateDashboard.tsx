@@ -10,8 +10,8 @@
  * - Loading states and error handling
  */
 
-import { memo, useState, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { memo, useState, useCallback, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Bell,
   Calendar,
@@ -21,22 +21,16 @@ import {
   RefreshCw,
   TrendingUp,
   Video,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useAuthStore } from "@/store/authStore";
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/store/authStore'
 
 // UI Components
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -44,8 +38,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+} from '@/components/ui/table'
+import { Progress } from '@/components/ui/progress'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -53,117 +47,109 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
-import { CandidateAppSidebar } from "./CandidateAppSidebar";
-import { ThemeToggle } from "@/components/theme";
+} from '@/components/ui/breadcrumb'
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
+import { CandidateAppSidebar } from './CandidateAppSidebar'
+import { ThemeToggle } from '@/components/theme'
 
 // Types
 interface InterviewStatus {
-  id: string;
-  jobTitle: string;
-  company: string;
-  status: "scheduled" | "completed" | "pending";
-  scheduledDate?: string;
-  completedDate?: string;
-  score?: number;
-  stage: string;
+  id: string
+  jobTitle: string
+  company: string
+  status: 'scheduled' | 'completed' | 'pending'
+  scheduledDate?: string
+  completedDate?: string
+  score?: number
+  stage: string
 }
 
 interface DashboardStats {
-  totalInterviews: number;
-  completedInterviews: number;
-  upcomingInterviews: number;
-  averageScore: number;
+  totalInterviews: number
+  completedInterviews: number
+  upcomingInterviews: number
+  averageScore: number
 }
 
 // Mock Data Generator
 const generateMockData = (): {
-  stats: DashboardStats;
-  interviews: InterviewStatus[];
+  stats: DashboardStats
+  interviews: InterviewStatus[]
   notifications: Array<{
-    id: string;
-    message: string;
-    time: string;
-    unread: boolean;
-  }>;
+    id: string
+    message: string
+    time: string
+    unread: boolean
+  }>
 } => {
   const interviews: InterviewStatus[] = [
     {
-      id: "1",
-      jobTitle: "Senior Frontend Developer",
-      company: "TechCorp Inc.",
-      status: "scheduled",
-      scheduledDate: "2026-03-06T14:00:00",
-      stage: "Technical Interview",
+      id: '1',
+      jobTitle: 'Senior Frontend Developer',
+      company: 'TechCorp Inc.',
+      status: 'scheduled',
+      scheduledDate: '2026-03-06T14:00:00',
+      stage: 'Technical Interview',
     },
     {
-      id: "2",
-      jobTitle: "Full Stack Engineer",
-      company: "StartupXYZ",
-      status: "completed",
-      completedDate: "2026-03-01T10:00:00",
+      id: '2',
+      jobTitle: 'Full Stack Engineer',
+      company: 'StartupXYZ',
+      status: 'completed',
+      completedDate: '2026-03-01T10:00:00',
       score: 85,
-      stage: "Final Round",
+      stage: 'Final Round',
     },
     {
-      id: "3",
-      jobTitle: "React Developer",
-      company: "Digital Solutions",
-      status: "pending",
-      stage: "Initial Screening",
+      id: '3',
+      jobTitle: 'React Developer',
+      company: 'Digital Solutions',
+      status: 'pending',
+      stage: 'Initial Screening',
     },
     {
-      id: "4",
-      jobTitle: "UI/UX Developer",
-      company: "Creative Agency",
-      status: "completed",
-      completedDate: "2026-02-28T15:30:00",
+      id: '4',
+      jobTitle: 'UI/UX Developer',
+      company: 'Creative Agency',
+      status: 'completed',
+      completedDate: '2026-02-28T15:30:00',
       score: 92,
-      stage: "Behavioral Interview",
+      stage: 'Behavioral Interview',
     },
-  ];
+  ]
 
   const stats: DashboardStats = {
     totalInterviews: interviews.length,
-    completedInterviews: interviews.filter((i) => i.status === "completed")
-      .length,
-    upcomingInterviews: interviews.filter((i) => i.status === "scheduled")
-      .length,
+    completedInterviews: interviews.filter((i) => i.status === 'completed').length,
+    upcomingInterviews: interviews.filter((i) => i.status === 'scheduled').length,
     averageScore:
-      interviews
-        .filter((i) => i.score)
-        .reduce((acc, i) => acc + (i.score || 0), 0) /
+      interviews.filter((i) => i.score).reduce((acc, i) => acc + (i.score || 0), 0) /
       (interviews.filter((i) => i.score).length || 1),
-  };
+  }
 
   const notifications = [
     {
-      id: "1",
-      message: "Interview scheduled for Senior Frontend Developer",
-      time: "2h ago",
+      id: '1',
+      message: 'Interview scheduled for Senior Frontend Developer',
+      time: '2h ago',
       unread: true,
     },
     {
-      id: "2",
-      message: "Your interview results are ready",
-      time: "1d ago",
+      id: '2',
+      message: 'Your interview results are ready',
+      time: '1d ago',
       unread: true,
     },
     {
-      id: "3",
-      message: "New job opportunity matches your profile",
-      time: "2d ago",
+      id: '3',
+      message: 'New job opportunity matches your profile',
+      time: '2d ago',
       unread: false,
     },
-  ];
+  ]
 
-  return { stats, interviews, notifications };
-};
+  return { stats, interviews, notifications }
+}
 
 // Memoized Components
 // Stats Card Component
@@ -176,34 +162,30 @@ const StatsCard = memo(
     trend,
     isLoading = false,
   }: {
-    title: string;
-    value: string | number;
-    description: string;
-    icon: React.ElementType;
-    trend?: { value: number; isPositive: boolean };
-    isLoading?: boolean;
+    title: string
+    value: string | number
+    description: string
+    icon: React.ElementType
+    trend?: { value: number; isPositive: boolean }
+    isLoading?: boolean
   }) => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <Icon className="text-muted-foreground h-4 w-4" aria-hidden="true" />
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <>
-            <Skeleton className="h-8 w-24 mb-2" />
+            <Skeleton className="mb-2 h-8 w-24" />
             <Skeleton className="h-4 w-32" />
           </>
         ) : (
           <>
             <div className="text-2xl font-bold">{value}</div>
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
+            <p className="text-muted-foreground flex items-center gap-2 text-xs">
               {trend && (
-                <span
-                  className={
-                    trend.isPositive ? "text-emerald-500" : "text-red-500"
-                  }
-                >
+                <span className={trend.isPositive ? 'text-emerald-500' : 'text-red-500'}>
                   <TrendingUp className="inline h-3 w-3" />
                   {trend.value}%
                 </span>
@@ -215,24 +197,16 @@ const StatsCard = memo(
       </CardContent>
     </Card>
   ),
-);
-StatsCard.displayName = "StatsCard";
+)
+StatsCard.displayName = 'StatsCard'
 
 // Interview Table Component
 const InterviewsTable = memo(
-  ({
-    interviews,
-    isLoading = false,
-  }: {
-    interviews: InterviewStatus[];
-    isLoading?: boolean;
-  }) => (
+  ({ interviews, isLoading = false }: { interviews: InterviewStatus[]; isLoading?: boolean }) => (
     <Card>
       <CardHeader>
         <CardTitle>Recent Interviews</CardTitle>
-        <CardDescription>
-          Track your interview progress and upcoming sessions
-        </CardDescription>
+        <CardDescription>Track your interview progress and upcoming sessions</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -255,44 +229,32 @@ const InterviewsTable = memo(
             <TableBody>
               {interviews.map((interview) => (
                 <TableRow key={interview.id}>
-                  <TableCell className="font-medium">
-                    {interview.jobTitle}
-                  </TableCell>
+                  <TableCell className="font-medium">{interview.jobTitle}</TableCell>
                   <TableCell>{interview.company}</TableCell>
                   <TableCell>{interview.stage}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        interview.status === "completed"
-                          ? "default"
-                          : interview.status === "scheduled"
-                            ? "secondary"
-                            : "outline"
+                        interview.status === 'completed'
+                          ? 'default'
+                          : interview.status === 'scheduled'
+                            ? 'secondary'
+                            : 'outline'
                       }
                     >
-                      {interview.status === "scheduled" && (
-                        <Video className="mr-1 h-3 w-3" />
-                      )}
-                      {interview.status === "completed" && (
+                      {interview.status === 'scheduled' && <Video className="mr-1 h-3 w-3" />}
+                      {interview.status === 'completed' && (
                         <CheckCircle2 className="mr-1 h-3 w-3" />
                       )}
-                      {interview.status === "pending" && (
-                        <Clock className="mr-1 h-3 w-3" />
-                      )}
-                      {interview.status.charAt(0).toUpperCase() +
-                        interview.status.slice(1)}
+                      {interview.status === 'pending' && <Clock className="mr-1 h-3 w-3" />}
+                      {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     {interview.score ? (
                       <div className="flex items-center justify-end gap-2">
-                        <Progress
-                          value={interview.score}
-                          className="w-16 h-2"
-                        />
-                        <span className="text-sm font-medium">
-                          {interview.score}%
-                        </span>
+                        <Progress value={interview.score} className="h-2 w-16" />
+                        <span className="text-sm font-medium">{interview.score}%</span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>
@@ -306,41 +268,41 @@ const InterviewsTable = memo(
       </CardContent>
     </Card>
   ),
-);
-InterviewsTable.displayName = "InterviewsTable";
+)
+InterviewsTable.displayName = 'InterviewsTable'
 
 // Main Dashboard Component
 export const CandidateDashboard = memo(() => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState(generateMockData());
-  const user = useAuthStore((state) => state.user);
+  const [isLoading, setIsLoading] = useState(true)
+  const [data, setData] = useState(generateMockData())
+  const user = useAuthStore((state) => state.user)
 
   // Simulate data loading
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+      setIsLoading(false)
+    }, 1000)
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleRefresh = useCallback(() => {
-    setIsLoading(true);
+    setIsLoading(true)
     toast.promise(
       new Promise((resolve) => {
         setTimeout(() => {
-          setData(generateMockData());
-          setIsLoading(false);
-          resolve(true);
-        }, 1000);
+          setData(generateMockData())
+          setIsLoading(false)
+          resolve(true)
+        }, 1000)
       }),
       {
-        loading: "Refreshing dashboard...",
-        success: "Dashboard updated!",
-        error: "Failed to refresh dashboard",
+        loading: 'Refreshing dashboard...',
+        success: 'Dashboard updated!',
+        error: 'Failed to refresh dashboard',
       },
-    );
-  }, []);
+    )
+  }, [])
 
   return (
     <SidebarProvider>
@@ -373,15 +335,10 @@ export const CandidateDashboard = memo(() => {
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              aria-label="Notifications"
-            >
+            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
               <Bell className="h-4 w-4" />
               {data.notifications.filter((n) => n.unread).length > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 text-xs font-bold flex items-center justify-center text-zinc-950">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-zinc-950">
                   {data.notifications.filter((n) => n.unread).length}
                 </span>
               )}
@@ -392,12 +349,10 @@ export const CandidateDashboard = memo(() => {
         {/* Main Content */}
         <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="flex flex-col gap-2 py-4">
-            <h1 className="text-3xl font-bold tracking-tight">
-              Candidate Dashboard
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">Candidate Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back{user?.firstName ? `, ${user.firstName}` : ""}! Here's
-              an overview of your interview status.
+              Welcome back{user?.firstName ? `, ${user.firstName}` : ''}! Here's an overview of your
+              interview status.
             </p>
           </div>
 
@@ -468,7 +423,7 @@ export const CandidateDashboard = memo(() => {
         </main>
       </SidebarInset>
     </SidebarProvider>
-  );
-});
+  )
+})
 
-CandidateDashboard.displayName = "CandidateDashboard";
+CandidateDashboard.displayName = 'CandidateDashboard'

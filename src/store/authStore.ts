@@ -1,28 +1,28 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+import { create } from 'zustand'
+import { devtools } from 'zustand/middleware'
 
 // Define the User type based on your schema
 export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: "admin" | "recruiter" | "candidate";
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  role: 'admin' | 'recruiter' | 'candidate'
   // Add other fields as needed
 }
 
 // Define the Auth State
 interface AuthState {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  user: User | null
+  token: string | null
+  isAuthenticated: boolean
+  isLoading: boolean
 
   // Actions
-  login: (user: User, token: string) => void;
-  logout: () => void;
-  updateUser: (user: Partial<User>) => void;
-  setLoading: (isLoading: boolean) => void;
+  login: (user: User, token: string) => void
+  logout: () => void
+  updateUser: (user: Partial<User>) => void
+  setLoading: (isLoading: boolean) => void
 }
 
 // Create the store with devtools middleware
@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           },
           false,
-          "auth/login",
+          'auth/login',
         ),
 
       logout: () =>
@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           },
           false,
-          "auth/logout",
+          'auth/logout',
         ),
 
       updateUser: (updatedUser) =>
@@ -64,11 +64,11 @@ export const useAuthStore = create<AuthState>()(
             user: state.user ? { ...state.user, ...updatedUser } : null,
           }),
           false,
-          "auth/updateUser",
+          'auth/updateUser',
         ),
 
-      setLoading: (isLoading) => set({ isLoading }, false, "auth/setLoading"),
+      setLoading: (isLoading) => set({ isLoading }, false, 'auth/setLoading'),
     }),
-    { name: "AuthStore" }, // Name for Redux DevTools
+    { name: 'AuthStore' }, // Name for Redux DevTools
   ),
-);
+)

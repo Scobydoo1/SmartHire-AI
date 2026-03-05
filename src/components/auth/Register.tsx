@@ -6,11 +6,11 @@
  * - Better accessibility and type safety
  */
 
-import { memo, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { AuthLayout } from "./AuthLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { memo, useCallback } from 'react'
+import { Link } from 'react-router-dom'
+import { AuthLayout } from './AuthLayout'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -18,52 +18,46 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Mail, User as UserIcon, Loader2 } from "lucide-react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+} from '@/components/ui/form'
+import { Mail, User as UserIcon, Loader2 } from 'lucide-react'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 // Import custom hooks and components
-import { useAuthRegister } from "./hooks";
-import {
-  PasswordInput,
-  PasswordStrengthIndicator,
-  MobileLogo,
-} from "./components";
-import type { RegisterFormData, ConfirmFormData } from "./types";
+import { useAuthRegister } from './hooks'
+import { PasswordInput, PasswordStrengthIndicator, MobileLogo } from './components'
+import type { RegisterFormData, ConfirmFormData } from './types'
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Full name must be at least 2 characters.",
+    message: 'Full name must be at least 2 characters.',
   }),
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: 'Please enter a valid email address.',
   }),
   password: z
     .string()
     .min(8, {
-      message: "Password must be at least 8 characters.",
+      message: 'Password must be at least 8 characters.',
     })
-    .regex(/[a-z]/, { message: "Must contain at least one lowercase letter." })
-    .regex(/[A-Z]/, { message: "Must contain at least one uppercase letter." })
-    .regex(/[0-9]/, { message: "Must contain at least one number." })
+    .regex(/[a-z]/, { message: 'Must contain at least one lowercase letter.' })
+    .regex(/[A-Z]/, { message: 'Must contain at least one uppercase letter.' })
+    .regex(/[0-9]/, { message: 'Must contain at least one number.' })
     .regex(/[^A-Za-z0-9]/, {
-      message: "Must contain at least one special character.",
+      message: 'Must contain at least one special character.',
     }),
-});
+})
 
 const confirmSchema = z.object({
-  code: z
-    .string()
-    .length(6, { message: "Verification code must be 6 digits." }),
-});
+  code: z.string().length(6, { message: 'Verification code must be 6 digits.' }),
+})
 
 // Confirmation Step Component
 interface ConfirmationStepProps {
-  registeredEmail: string;
-  isSubmitting: boolean;
-  onConfirm: (data: ConfirmFormData) => Promise<void>;
+  registeredEmail: string
+  isSubmitting: boolean
+  onConfirm: (data: ConfirmFormData) => Promise<void>
 }
 
 const ConfirmationStep = memo<ConfirmationStepProps>(
@@ -71,36 +65,33 @@ const ConfirmationStep = memo<ConfirmationStepProps>(
     const confirmForm = useForm<ConfirmFormData>({
       resolver: zodResolver(confirmSchema),
       defaultValues: {
-        code: "",
+        code: '',
       },
-    });
+    })
 
     const handleConfirmSubmit = useCallback(
       (values: ConfirmFormData) => {
-        onConfirm(values);
+        onConfirm(values)
       },
       [onConfirm],
-    );
+    )
 
     return (
       <>
-        <div className="flex flex-col gap-2 mb-8 text-center md:text-left">
+        <div className="mb-8 flex flex-col gap-2 text-center md:text-left">
           <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             Check your email
           </h2>
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-            We've sent a 6-digit verification code to{" "}
-            <span className="text-zinc-900 dark:text-white font-medium">
-              {registeredEmail}
-            </span>
-            .
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            We've sent a 6-digit verification code to{' '}
+            <span className="font-medium text-zinc-900 dark:text-white">{registeredEmail}</span>.
           </p>
         </div>
 
         <Form {...confirmForm}>
           <form
             onSubmit={confirmForm.handleSubmit(handleConfirmSubmit)}
-            className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            className="animate-in fade-in slide-in-from-bottom-4 flex flex-col gap-5 duration-500"
             noValidate
           >
             <FormField
@@ -108,31 +99,26 @@ const ConfirmationStep = memo<ConfirmationStepProps>(
               name="code"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel
-                    htmlFor="code"
-                    className="text-zinc-700 dark:text-zinc-300 ml-1"
-                  >
+                  <FormLabel htmlFor="code" className="ml-1 text-zinc-700 dark:text-zinc-300">
                     Verification Code
                   </FormLabel>
                   <FormControl>
                     <Input
                       id="code"
                       placeholder="123456"
-                      className="bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50 text-center tracking-widest text-lg"
+                      className="border-zinc-300 bg-zinc-50 text-center text-lg tracking-widest text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-600"
                       maxLength={6}
                       autoComplete="one-time-code"
                       inputMode="numeric"
                       pattern="[0-9]*"
                       aria-invalid={!!confirmForm.formState.errors.code}
                       aria-describedby={
-                        confirmForm.formState.errors.code
-                          ? "code-error"
-                          : undefined
+                        confirmForm.formState.errors.code ? 'code-error' : undefined
                       }
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage id="code-error" className="text-red-400 ml-1" />
+                  <FormMessage id="code-error" className="ml-1 text-red-400" />
                 </FormItem>
               )}
             />
@@ -140,84 +126,80 @@ const ConfirmationStep = memo<ConfirmationStepProps>(
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold h-11 transition-all"
+              className="mt-4 h-11 w-full bg-emerald-500 font-bold text-zinc-950 transition-all hover:bg-emerald-600"
               aria-busy={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2
-                    className="w-5 h-5 animate-spin mr-2"
-                    aria-hidden="true"
-                  />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                   <span className="sr-only">Verifying...</span>
                 </>
               ) : (
-                "Verify Account"
+                'Verify Account'
               )}
             </Button>
           </form>
         </Form>
       </>
-    );
+    )
   },
-);
-ConfirmationStep.displayName = "ConfirmationStep";
+)
+ConfirmationStep.displayName = 'ConfirmationStep'
 
 // Registration Header Component
 const RegistrationHeader = memo(() => (
-  <div className="flex flex-col gap-2 mb-8 text-center md:text-left">
+  <div className="mb-8 flex flex-col gap-2 text-center md:text-left">
     <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
       Create an account
     </h2>
-    <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+    <p className="text-sm text-zinc-500 dark:text-zinc-400">
       Enter your details below to request early access.
     </p>
   </div>
-));
-RegistrationHeader.displayName = "RegistrationHeader";
+))
+RegistrationHeader.displayName = 'RegistrationHeader'
 
 // Registration Footer Component
 const RegistrationFooter = memo(() => (
   <div className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-    Already have an account?{" "}
+    Already have an account?{' '}
     <Link
       to="/login"
-      className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
+      className="font-medium text-emerald-500 transition-colors hover:text-emerald-400"
     >
       Sign In Instead
     </Link>
   </div>
-));
-RegistrationFooter.displayName = "RegistrationFooter";
+))
+RegistrationFooter.displayName = 'RegistrationFooter'
 
 // Main Register Component
 export const Register = memo(() => {
-  const { isSubmitting, isConfirming, registeredEmail, onSubmit, onConfirm } =
-    useAuthRegister();
+  const { isSubmitting, isConfirming, registeredEmail, onSubmit, onConfirm } = useAuthRegister()
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
+      name: '',
+      email: '',
+      password: '',
     },
-    mode: "onChange",
-  });
+    mode: 'onChange',
+  })
 
   // Watch password field for strength indicator using useWatch (React Compiler compatible)
   const passwordValue = useWatch({
     control: form.control,
-    name: "password",
-    defaultValue: "",
-  });
+    name: 'password',
+    defaultValue: '',
+  })
 
   const handleFormSubmit = useCallback(
     (values: RegisterFormData) => {
-      onSubmit(values);
+      onSubmit(values)
     },
     [onSubmit],
-  );
+  )
 
   // Render confirmation step if in confirming state
   if (isConfirming) {
@@ -229,7 +211,7 @@ export const Register = memo(() => {
           onConfirm={onConfirm}
         />
       </AuthLayout>
-    );
+    )
   }
 
   // Render registration form
@@ -241,7 +223,7 @@ export const Register = memo(() => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleFormSubmit)}
-          className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500"
+          className="animate-in fade-in slide-in-from-bottom-4 flex flex-col gap-5 duration-500"
           noValidate
         >
           {/* Full Name Input */}
@@ -250,32 +232,27 @@ export const Register = memo(() => {
             name="name"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel
-                  htmlFor="name"
-                  className="text-zinc-700 dark:text-zinc-300 ml-1"
-                >
+                <FormLabel htmlFor="name" className="ml-1 text-zinc-700 dark:text-zinc-300">
                   Full Name
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <UserIcon
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500"
+                      className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
                       aria-hidden="true"
                     />
                     <Input
                       id="name"
                       placeholder="Jane Doe"
                       autoComplete="name"
-                      className="pl-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
+                      className="border-zinc-300 bg-zinc-50 pl-10 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-600"
                       aria-invalid={!!form.formState.errors.name}
-                      aria-describedby={
-                        form.formState.errors.name ? "name-error" : undefined
-                      }
+                      aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage id="name-error" className="text-red-400 ml-1" />
+                <FormMessage id="name-error" className="ml-1 text-red-400" />
               </FormItem>
             )}
           />
@@ -286,16 +263,13 @@ export const Register = memo(() => {
             name="email"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel
-                  htmlFor="email"
-                  className="text-zinc-700 dark:text-zinc-300 ml-1"
-                >
+                <FormLabel htmlFor="email" className="ml-1 text-zinc-700 dark:text-zinc-300">
                   Work Email
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500"
+                      className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
                       aria-hidden="true"
                     />
                     <Input
@@ -303,16 +277,14 @@ export const Register = memo(() => {
                       type="email"
                       placeholder="name@company.com"
                       autoComplete="email"
-                      className="pl-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
+                      className="border-zinc-300 bg-zinc-50 pl-10 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-600"
                       aria-invalid={!!form.formState.errors.email}
-                      aria-describedby={
-                        form.formState.errors.email ? "email-error" : undefined
-                      }
+                      aria-describedby={form.formState.errors.email ? 'email-error' : undefined}
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage id="email-error" className="text-red-400 ml-1" />
+                <FormMessage id="email-error" className="ml-1 text-red-400" />
               </FormItem>
             )}
           />
@@ -323,10 +295,7 @@ export const Register = memo(() => {
             name="password"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel
-                  htmlFor="password"
-                  className="text-zinc-700 dark:text-zinc-300 ml-1"
-                >
+                <FormLabel htmlFor="password" className="ml-1 text-zinc-700 dark:text-zinc-300">
                   Password
                 </FormLabel>
                 <FormControl>
@@ -337,22 +306,16 @@ export const Register = memo(() => {
                     aria-invalid={!!form.formState.errors.password}
                     aria-describedby={
                       form.formState.errors.password || passwordValue.length > 0
-                        ? "password-error password-strength"
+                        ? 'password-error password-strength'
                         : undefined
                     }
                     {...field}
                   />
                 </FormControl>
-                <FormMessage
-                  id="password-error"
-                  className="text-red-400 ml-1"
-                />
+                <FormMessage id="password-error" className="ml-1 text-red-400" />
 
                 {/* Password Strength Indicator */}
-                <PasswordStrengthIndicator
-                  password={passwordValue}
-                  className="px-1 pt-1"
-                />
+                <PasswordStrengthIndicator password={passwordValue} className="px-1 pt-1" />
               </FormItem>
             )}
           />
@@ -360,19 +323,16 @@ export const Register = memo(() => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold h-11 transition-all"
+            className="mt-4 h-11 w-full bg-emerald-500 font-bold text-zinc-950 transition-all hover:bg-emerald-600"
             aria-busy={isSubmitting}
           >
             {isSubmitting ? (
               <>
-                <Loader2
-                  className="w-5 h-5 animate-spin mr-2"
-                  aria-hidden="true"
-                />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                 <span className="sr-only">Creating account...</span>
               </>
             ) : (
-              "Create Account"
+              'Create Account'
             )}
           </Button>
 
@@ -380,7 +340,7 @@ export const Register = memo(() => {
         </form>
       </Form>
     </AuthLayout>
-  );
-});
+  )
+})
 
-Register.displayName = "Register";
+Register.displayName = 'Register'

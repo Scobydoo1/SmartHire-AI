@@ -4,20 +4,20 @@
  * Optimized with React.memo
  */
 
-import React, { memo } from "react";
-import { Button } from "@/components/ui/button";
-import type { SocialProvider } from "../types";
+import React, { memo } from 'react'
+import { Button } from '@/components/ui/button'
+import type { SocialProvider } from '../types'
 
 interface SocialLoginButtonProps {
-  provider: SocialProvider;
-  onClick: () => void;
-  isLoading?: boolean;
-  className?: string;
+  provider: SocialProvider
+  onClick: () => void
+  isLoading?: boolean
+  className?: string
 }
 
 const ProviderIcons: Record<SocialProvider, React.ReactNode> = {
   Google: (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
       <path
         d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.25024 6.65L5.25524 9.765C6.20524 6.845 8.86028 4.75 12.0003 4.75Z"
         fill="#EA4335"
@@ -38,24 +38,24 @@ const ProviderIcons: Record<SocialProvider, React.ReactNode> = {
   ),
   Facebook: null, // Add Facebook icon if needed
   Apple: null, // Add Apple icon if needed
-};
+}
 
 export const SocialLoginButton = memo<SocialLoginButtonProps>(
-  ({ provider, onClick, isLoading = false, className = "" }) => {
+  ({ provider, onClick, isLoading = false, className = '' }) => {
     return (
       <Button
         type="button"
         variant="outline"
         onClick={onClick}
         disabled={isLoading}
-        className={`w-full bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white h-11 flex items-center justify-center gap-2 ${className}`}
+        className={`flex h-11 w-full items-center justify-center gap-2 border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white ${className}`}
         aria-label={`Sign in with ${provider}`}
       >
         {ProviderIcons[provider]}
         {provider}
       </Button>
-    );
+    )
   },
-);
+)
 
-SocialLoginButton.displayName = "SocialLoginButton";
+SocialLoginButton.displayName = 'SocialLoginButton'

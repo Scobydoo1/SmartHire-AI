@@ -6,11 +6,11 @@
  * - Better accessibility with ARIA attributes
  */
 
-import { memo, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { AuthLayout } from "./AuthLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { memo, useCallback } from 'react'
+import { Link } from 'react-router-dom'
+import { AuthLayout } from './AuthLayout'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Form,
   FormControl,
@@ -18,87 +18,78 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Mail, Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+} from '@/components/ui/form'
+import { Mail, Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 // Import custom hooks and components
-import { useAuthLogin, useSocialAuth } from "./hooks";
-import {
-  PasswordInput,
-  SocialLoginButton,
-  FormDivider,
-  MobileLogo,
-} from "./components";
-import type { LoginFormData } from "./types";
+import { useAuthLogin, useSocialAuth } from './hooks'
+import { PasswordInput, SocialLoginButton, FormDivider, MobileLogo } from './components'
+import type { LoginFormData } from './types'
 
 const formSchema = z.object({
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: 'Please enter a valid email address.',
   }),
   password: z.string().min(1, {
-    message: "Password is required.",
+    message: 'Password is required.',
   }),
-});
+})
 
 // Memoized header component
 const LoginHeader = memo(() => (
-  <div
-    role="heading"
-    aria-level={1}
-    className="flex flex-col gap-2 mb-8 text-center md:text-left"
-  >
+  <div role="heading" aria-level={1} className="mb-8 flex flex-col gap-2 text-center md:text-left">
     <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
       Welcome back
     </h2>
-    <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+    <p className="text-sm text-zinc-500 dark:text-zinc-400">
       Enter your credentials to access your workspace.
     </p>
   </div>
-));
-LoginHeader.displayName = "LoginHeader";
+))
+LoginHeader.displayName = 'LoginHeader'
 
 // Memoized footer component
 const LoginFooter = memo(() => (
   <div className="mt-6 text-center text-sm text-zinc-500">
-    Don't have an account?{" "}
+    Don't have an account?{' '}
     <Link
       to="/register"
-      className="text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
+      className="font-medium text-emerald-500 transition-colors hover:text-emerald-400"
     >
       Request early access
     </Link>
   </div>
-));
-LoginFooter.displayName = "LoginFooter";
+))
+LoginFooter.displayName = 'LoginFooter'
 
 export const Login = memo(() => {
   // Custom hooks for auth logic
-  const { isSubmitting, onSubmit } = useAuthLogin();
-  const { signInWithProvider } = useSocialAuth();
+  const { isSubmitting, onSubmit } = useAuthLogin()
+  const { signInWithProvider } = useSocialAuth()
 
   // Form setup
   const form = useForm<LoginFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  });
+  })
 
   // Memoized handlers
   const handleFormSubmit = useCallback(
     (values: LoginFormData) => {
-      onSubmit(values);
+      onSubmit(values)
     },
     [onSubmit],
-  );
+  )
 
   const handleGoogleLogin = useCallback(() => {
-    signInWithProvider("Google");
-  }, [signInWithProvider]);
+    signInWithProvider('Google')
+  }, [signInWithProvider])
 
   return (
     <AuthLayout>
@@ -108,7 +99,7 @@ export const Login = memo(() => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleFormSubmit)}
-          className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-4 duration-500"
+          className="animate-in fade-in slide-in-from-bottom-4 flex flex-col gap-5 duration-500"
           noValidate
         >
           {/* Email Input */}
@@ -117,16 +108,13 @@ export const Login = memo(() => {
             name="email"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <FormLabel
-                  htmlFor="email"
-                  className="text-zinc-700 dark:text-zinc-300 ml-1"
-                >
+                <FormLabel htmlFor="email" className="ml-1 text-zinc-700 dark:text-zinc-300">
                   Work Email
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 dark:text-zinc-500"
+                      className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500"
                       aria-hidden="true"
                     />
                     <Input
@@ -134,16 +122,14 @@ export const Login = memo(() => {
                       type="email"
                       placeholder="name@company.com"
                       autoComplete="email"
-                      className="pl-10 bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus-visible:ring-emerald-500/50"
+                      className="border-zinc-300 bg-zinc-50 pl-10 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-emerald-500/50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-600"
                       aria-invalid={!!form.formState.errors.email}
-                      aria-describedby={
-                        form.formState.errors.email ? "email-error" : undefined
-                      }
+                      aria-describedby={form.formState.errors.email ? 'email-error' : undefined}
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage id="email-error" className="text-red-400 ml-1" />
+                <FormMessage id="email-error" className="ml-1 text-red-400" />
               </FormItem>
             )}
           />
@@ -154,16 +140,13 @@ export const Login = memo(() => {
             name="password"
             render={({ field }) => (
               <FormItem className="space-y-1">
-                <div className="flex justify-between items-center ml-1">
-                  <FormLabel
-                    htmlFor="password"
-                    className="text-zinc-700 dark:text-zinc-300"
-                  >
+                <div className="ml-1 flex items-center justify-between">
+                  <FormLabel htmlFor="password" className="text-zinc-700 dark:text-zinc-300">
                     Password
                   </FormLabel>
                   <Link
                     to="#"
-                    className="text-xs text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
+                    className="text-xs text-emerald-600 transition-colors hover:text-emerald-500 dark:text-emerald-500 dark:hover:text-emerald-400"
                     aria-label="Forgot password?"
                   >
                     Forgot password?
@@ -175,18 +158,11 @@ export const Login = memo(() => {
                     placeholder="••••••••"
                     autoComplete="current-password"
                     aria-invalid={!!form.formState.errors.password}
-                    aria-describedby={
-                      form.formState.errors.password
-                        ? "password-error"
-                        : undefined
-                    }
+                    aria-describedby={form.formState.errors.password ? 'password-error' : undefined}
                     {...field}
                   />
                 </FormControl>
-                <FormMessage
-                  id="password-error"
-                  className="text-red-400 ml-1"
-                />
+                <FormMessage id="password-error" className="ml-1 text-red-400" />
               </FormItem>
             )}
           />
@@ -194,19 +170,16 @@ export const Login = memo(() => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold h-11"
+            className="mt-2 h-11 w-full bg-emerald-500 font-bold text-zinc-950 hover:bg-emerald-600"
             aria-busy={isSubmitting}
           >
             {isSubmitting ? (
               <>
-                <Loader2
-                  className="w-5 h-5 animate-spin mr-2"
-                  aria-hidden="true"
-                />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                 <span className="sr-only">Signing in...</span>
               </>
             ) : (
-              "Sign In"
+              'Sign In'
             )}
           </Button>
 
@@ -218,7 +191,7 @@ export const Login = memo(() => {
         </form>
       </Form>
     </AuthLayout>
-  );
-});
+  )
+})
 
-Login.displayName = "Login";
+Login.displayName = 'Login'

@@ -3,23 +3,13 @@
  * Sidebar navigation for candidate dashboard using shadcn/ui Sidebar
  */
 
-import { memo, useMemo, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  Calendar,
-  FileText,
-  Home,
-  LogOut,
-  Moon,
-  Settings,
-  Sun,
-  User,
-  Video,
-} from "lucide-react";
-import { signOut } from "aws-amplify/auth";
-import { useAuthStore } from "@/store/authStore";
-import { toast } from "sonner";
-import { useTheme } from "@/components/theme";
+import { memo, useMemo, useCallback } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Calendar, FileText, Home, LogOut, Moon, Settings, Sun, User, Video } from 'lucide-react'
+import { signOut } from 'aws-amplify/auth'
+import { useAuthStore } from '@/store/authStore'
+import { toast } from 'sonner'
+import { useTheme } from '@/components/theme'
 
 import {
   Sidebar,
@@ -32,8 +22,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from '@/components/ui/sidebar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,76 +31,76 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 
 // Navigation items configuration
 // Using a more structured format for better maintainability
 const navigationConfig = [
   {
-    id: "dashboard",
-    title: "Dashboard",
-    url: "/",
+    id: 'dashboard',
+    title: 'Dashboard',
+    url: '/',
     icon: Home,
-    description: "View your interview overview",
+    description: 'View your interview overview',
   },
   {
-    id: "interviews",
-    title: "Interviews",
-    url: "/interview",
+    id: 'interviews',
+    title: 'Interviews',
+    url: '/interview',
     icon: Video,
-    description: "Join or review interviews",
+    description: 'Join or review interviews',
   },
   {
-    id: "schedule",
-    title: "Schedule",
-    url: "/schedule",
+    id: 'schedule',
+    title: 'Schedule',
+    url: '/schedule',
     icon: Calendar,
-    description: "Manage your interview schedule",
+    description: 'Manage your interview schedule',
   },
   {
-    id: "resume",
-    title: "Resume",
-    url: "/resume",
+    id: 'resume',
+    title: 'Resume',
+    url: '/resume',
     icon: FileText,
-    description: "Update your resume",
+    description: 'Update your resume',
   },
-] as const;
+] as const
 
 const CandidateAppSidebarComponent = () => {
-  const location = useLocation();
-  const user = useAuthStore((state) => state.user);
+  const location = useLocation()
+  const user = useAuthStore((state) => state.user)
 
   // Memoize user initials for performance
   const getUserInitials = useMemo(() => {
     if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
     }
-    return user?.email?.[0].toUpperCase() || "U";
-  }, [user]);
+    return user?.email?.[0].toUpperCase() || 'U'
+  }, [user])
 
   // Memoize user display name
   const userDisplayName = useMemo(() => {
     if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
+      return `${user.firstName} ${user.lastName}`
     }
-    return user?.email || "User";
-  }, [user]);
+    return user?.email || 'User'
+  }, [user])
 
   // Optimized sign out handler with feedback
   const handleSignOut = useCallback(async () => {
     try {
-      await signOut();
-      toast.success("Signed out successfully");
+      await signOut()
+      toast.success('Signed out successfully')
     } catch (err) {
-      console.error("Error signing out:", err);
-      toast.error("Failed to sign out. Please try again.");
+      console.error('Error signing out:', err)
+      toast.error('Failed to sign out. Please try again.')
     }
-  }, []);
+  }, [])
 
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme()
 
   // Memoize navigation items to prevent unnecessary re-renders
-  const navigationItems = useMemo(() => navigationConfig, []);
+  const navigationItems = useMemo(() => navigationConfig, [])
 
   return (
     <Sidebar collapsible="icon">
@@ -119,7 +109,7 @@ const CandidateAppSidebarComponent = () => {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link to="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-500 text-sidebar-primary-foreground">
+                <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-500">
                   <span className="font-semibold">SH</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -138,21 +128,17 @@ const CandidateAppSidebarComponent = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname === item.url
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.title}
-                    >
+                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                       <Link to={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
+                )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -194,9 +180,7 @@ const CandidateAppSidebarComponent = () => {
                     <AvatarFallback>{getUserInitials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {userDisplayName}
-                    </span>
+                    <span className="truncate font-semibold">{userDisplayName}</span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                 </SidebarMenuButton>
@@ -214,9 +198,7 @@ const CandidateAppSidebarComponent = () => {
                       <AvatarFallback>{getUserInitials}</AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">
-                        {userDisplayName}
-                      </span>
+                      <span className="truncate font-semibold">{userDisplayName}</span>
                       <span className="truncate text-xs">{user?.email}</span>
                     </div>
                   </div>
@@ -236,8 +218,8 @@ const CandidateAppSidebarComponent = () => {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={toggleTheme}>
-                  {resolvedTheme === "dark" ? <Sun /> : <Moon />}
-                  {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                  {resolvedTheme === 'dark' ? <Sun /> : <Moon />}
+                  {resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
@@ -250,7 +232,7 @@ const CandidateAppSidebarComponent = () => {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
-};
+  )
+}
 
-export const CandidateAppSidebar = memo(CandidateAppSidebarComponent);
+export const CandidateAppSidebar = memo(CandidateAppSidebarComponent)

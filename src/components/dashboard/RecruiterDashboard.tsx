@@ -9,8 +9,8 @@
  * - Analytics and reporting
  */
 
-import { memo, useState, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { memo, useState, useCallback, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Bell,
   Briefcase,
@@ -21,22 +21,16 @@ import {
   RefreshCw,
   TrendingUp,
   Users,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useAuthStore } from "@/store/authStore";
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/store/authStore'
 
 // UI Components
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -44,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -52,122 +46,117 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
-import { RecruiterAppSidebar } from "./RecruiterAppSidebar";
-import { ThemeToggle } from "@/components/theme";
+} from '@/components/ui/breadcrumb'
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
+import { RecruiterAppSidebar } from './RecruiterAppSidebar'
+import { ThemeToggle } from '@/components/theme'
 
 // Types
 interface JobPosting {
-  id: string;
-  title: string;
-  department: string;
-  status: "active" | "paused" | "closed";
-  applicants: number;
-  interviewed: number;
-  hired: number;
-  postedDate: string;
+  id: string
+  title: string
+  department: string
+  status: 'active' | 'paused' | 'closed'
+  applicants: number
+  interviewed: number
+  hired: number
+  postedDate: string
 }
 
 interface RecruiterStats {
-  activeJobs: number;
-  totalApplicants: number;
-  interviewsScheduled: number;
-  hireRate: number;
+  activeJobs: number
+  totalApplicants: number
+  interviewsScheduled: number
+  hireRate: number
 }
 
 // Mock Data Generator
 const generateMockData = (): {
-  stats: RecruiterStats;
-  jobs: JobPosting[];
+  stats: RecruiterStats
+  jobs: JobPosting[]
   notifications: Array<{
-    id: string;
-    message: string;
-    time: string;
-    unread: boolean;
-  }>;
+    id: string
+    message: string
+    time: string
+    unread: boolean
+  }>
 } => {
   const jobs: JobPosting[] = [
     {
-      id: "1",
-      title: "Senior Frontend Developer",
-      department: "Engineering",
-      status: "active",
+      id: '1',
+      title: 'Senior Frontend Developer',
+      department: 'Engineering',
+      status: 'active',
       applicants: 45,
       interviewed: 12,
       hired: 2,
-      postedDate: "2026-02-15",
+      postedDate: '2026-02-15',
     },
     {
-      id: "2",
-      title: "Full Stack Engineer",
-      department: "Engineering",
-      status: "active",
+      id: '2',
+      title: 'Full Stack Engineer',
+      department: 'Engineering',
+      status: 'active',
       applicants: 38,
       interviewed: 8,
       hired: 1,
-      postedDate: "2026-02-20",
+      postedDate: '2026-02-20',
     },
     {
-      id: "3",
-      title: "Product Manager",
-      department: "Product",
-      status: "active",
+      id: '3',
+      title: 'Product Manager',
+      department: 'Product',
+      status: 'active',
       applicants: 52,
       interviewed: 15,
       hired: 3,
-      postedDate: "2026-02-10",
+      postedDate: '2026-02-10',
     },
     {
-      id: "4",
-      title: "UX Designer",
-      department: "Design",
-      status: "paused",
+      id: '4',
+      title: 'UX Designer',
+      department: 'Design',
+      status: 'paused',
       applicants: 28,
       interviewed: 5,
       hired: 0,
-      postedDate: "2026-01-25",
+      postedDate: '2026-01-25',
     },
-  ];
+  ]
 
   const stats: RecruiterStats = {
-    activeJobs: jobs.filter((j) => j.status === "active").length,
+    activeJobs: jobs.filter((j) => j.status === 'active').length,
     totalApplicants: jobs.reduce((acc, j) => acc + j.applicants, 0),
     interviewsScheduled: jobs.reduce((acc, j) => acc + j.interviewed, 0),
     hireRate: Math.round(
-      (jobs.reduce((acc, j) => acc + j.hired, 0) /
-        jobs.reduce((acc, j) => acc + j.applicants, 0)) *
+      (jobs.reduce((acc, j) => acc + j.hired, 0) / jobs.reduce((acc, j) => acc + j.applicants, 0)) *
         100,
     ),
-  };
+  }
 
   const notifications = [
     {
-      id: "1",
-      message: "New application for Senior Frontend Developer",
-      time: "10m ago",
+      id: '1',
+      message: 'New application for Senior Frontend Developer',
+      time: '10m ago',
       unread: true,
     },
     {
-      id: "2",
-      message: "Interview scheduled with candidate John Doe",
-      time: "1h ago",
+      id: '2',
+      message: 'Interview scheduled with candidate John Doe',
+      time: '1h ago',
       unread: true,
     },
     {
-      id: "3",
-      message: "Candidate accepted offer for Product Manager",
-      time: "3h ago",
+      id: '3',
+      message: 'Candidate accepted offer for Product Manager',
+      time: '3h ago',
       unread: false,
     },
-  ];
+  ]
 
-  return { stats, jobs, notifications };
-};
+  return { stats, jobs, notifications }
+}
 
 // Memoized Components
 // Stats Card Component
@@ -180,34 +169,30 @@ const StatsCard = memo(
     trend,
     isLoading = false,
   }: {
-    title: string;
-    value: string | number;
-    description: string;
-    icon: React.ElementType;
-    trend?: { value: number; isPositive: boolean };
-    isLoading?: boolean;
+    title: string
+    value: string | number
+    description: string
+    icon: React.ElementType
+    trend?: { value: number; isPositive: boolean }
+    isLoading?: boolean
   }) => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <Icon className="text-muted-foreground h-4 w-4" aria-hidden="true" />
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <>
-            <Skeleton className="h-8 w-24 mb-2" />
+            <Skeleton className="mb-2 h-8 w-24" />
             <Skeleton className="h-4 w-32" />
           </>
         ) : (
           <>
             <div className="text-2xl font-bold">{value}</div>
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
+            <p className="text-muted-foreground flex items-center gap-2 text-xs">
               {trend && (
-                <span
-                  className={
-                    trend.isPositive ? "text-emerald-500" : "text-red-500"
-                  }
-                >
+                <span className={trend.isPositive ? 'text-emerald-500' : 'text-red-500'}>
                   <TrendingUp className="inline h-3 w-3" />
                   {trend.value}%
                 </span>
@@ -219,18 +204,12 @@ const StatsCard = memo(
       </CardContent>
     </Card>
   ),
-);
-StatsCard.displayName = "StatsCard";
+)
+StatsCard.displayName = 'StatsCard'
 
 // Jobs Table Component
 const JobsTable = memo(
-  ({
-    jobs,
-    isLoading = false,
-  }: {
-    jobs: JobPosting[];
-    isLoading?: boolean;
-  }) => (
+  ({ jobs, isLoading = false }: { jobs: JobPosting[]; isLoading?: boolean }) => (
     <Card>
       <CardHeader>
         <CardTitle>Active Job Postings</CardTitle>
@@ -263,30 +242,22 @@ const JobsTable = memo(
                   <TableCell>
                     <Badge
                       variant={
-                        job.status === "active"
-                          ? "default"
-                          : job.status === "paused"
-                            ? "secondary"
-                            : "outline"
+                        job.status === 'active'
+                          ? 'default'
+                          : job.status === 'paused'
+                            ? 'secondary'
+                            : 'outline'
                       }
                     >
-                      {job.status === "active" && (
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                      )}
-                      {job.status === "paused" && (
-                        <Clock className="mr-1 h-3 w-3" />
-                      )}
+                      {job.status === 'active' && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                      {job.status === 'paused' && <Clock className="mr-1 h-3 w-3" />}
                       {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">{job.applicants}</TableCell>
+                  <TableCell className="text-right">{job.interviewed}</TableCell>
                   <TableCell className="text-right">
-                    {job.interviewed}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="font-semibold text-emerald-500">
-                      {job.hired}
-                    </span>
+                    <span className="font-semibold text-emerald-500">{job.hired}</span>
                   </TableCell>
                 </TableRow>
               ))}
@@ -296,41 +267,41 @@ const JobsTable = memo(
       </CardContent>
     </Card>
   ),
-);
-JobsTable.displayName = "JobsTable";
+)
+JobsTable.displayName = 'JobsTable'
 
 // Main Dashboard Component
 export const RecruiterDashboard = memo(() => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState(generateMockData());
-  const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "admin";
+  const [isLoading, setIsLoading] = useState(true)
+  const [data, setData] = useState(generateMockData())
+  const user = useAuthStore((state) => state.user)
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+      setIsLoading(false)
+    }, 1000)
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleRefresh = useCallback(() => {
-    setIsLoading(true);
+    setIsLoading(true)
     toast.promise(
       new Promise((resolve) => {
         setTimeout(() => {
-          setData(generateMockData());
-          setIsLoading(false);
-          resolve(true);
-        }, 1000);
+          setData(generateMockData())
+          setIsLoading(false)
+          resolve(true)
+        }, 1000)
       }),
       {
-        loading: "Refreshing dashboard...",
-        success: "Dashboard updated!",
-        error: "Failed to refresh dashboard",
+        loading: 'Refreshing dashboard...',
+        success: 'Dashboard updated!',
+        error: 'Failed to refresh dashboard',
       },
-    );
-  }, []);
+    )
+  }, [])
 
   return (
     <SidebarProvider>
@@ -349,9 +320,7 @@ export const RecruiterDashboard = memo(() => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {isAdmin ? "Admin" : "Recruiter"} Dashboard
-                </BreadcrumbPage>
+                <BreadcrumbPage>{isAdmin ? 'Admin' : 'Recruiter'} Dashboard</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -365,15 +334,10 @@ export const RecruiterDashboard = memo(() => {
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              aria-label="Notifications"
-            >
+            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
               <Bell className="h-4 w-4" />
               {data.notifications.filter((n) => n.unread).length > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 text-xs font-bold flex items-center justify-center text-zinc-950">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-zinc-950">
                   {data.notifications.filter((n) => n.unread).length}
                 </span>
               )}
@@ -385,7 +349,7 @@ export const RecruiterDashboard = memo(() => {
         <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="flex flex-col gap-2 py-4">
             <h1 className="text-3xl font-bold tracking-tight">
-              {isAdmin ? "Admin" : "Recruiter"} Dashboard
+              {isAdmin ? 'Admin' : 'Recruiter'} Dashboard
             </h1>
             <p className="text-muted-foreground">
               Manage your recruitment pipeline and track hiring metrics.
@@ -457,7 +421,7 @@ export const RecruiterDashboard = memo(() => {
         </main>
       </SidebarInset>
     </SidebarProvider>
-  );
-});
+  )
+})
 
-RecruiterDashboard.displayName = "RecruiterDashboard";
+RecruiterDashboard.displayName = 'RecruiterDashboard'

@@ -4,21 +4,20 @@
  * Optimized with React.memo
  */
 
-import { memo } from "react";
-import { usePasswordStrength } from "../hooks";
+import { memo } from 'react'
+import { usePasswordStrength } from '../hooks'
 
 interface PasswordStrengthIndicatorProps {
-  password: string;
-  showLabel?: boolean;
-  className?: string;
+  password: string
+  showLabel?: boolean
+  className?: string
 }
 
 export const PasswordStrengthIndicator = memo<PasswordStrengthIndicatorProps>(
-  ({ password, showLabel = false, className = "" }) => {
-    const { strength, strengthLabel, strengthColor } =
-      usePasswordStrength(password);
+  ({ password, showLabel = false, className = '' }) => {
+    const { strength, strengthLabel, strengthColor } = usePasswordStrength(password)
 
-    if (!password) return null;
+    if (!password) return null
 
     return (
       <div className={`space-y-2 ${className}`}>
@@ -27,25 +26,20 @@ export const PasswordStrengthIndicator = memo<PasswordStrengthIndicatorProps>(
             <div
               key={i}
               className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-                i < strength ? strengthColor : "bg-zinc-800"
+                i < strength ? strengthColor : 'bg-zinc-800'
               }`}
               role="presentation"
             />
           ))}
         </div>
         {showLabel && (
-          <p
-            className="text-xs text-zinc-400"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            Password strength:{" "}
-            <span className="font-medium">{strengthLabel}</span>
+          <p className="text-xs text-zinc-400" aria-live="polite" aria-atomic="true">
+            Password strength: <span className="font-medium">{strengthLabel}</span>
           </p>
         )}
       </div>
-    );
+    )
   },
-);
+)
 
-PasswordStrengthIndicator.displayName = "PasswordStrengthIndicator";
+PasswordStrengthIndicator.displayName = 'PasswordStrengthIndicator'
