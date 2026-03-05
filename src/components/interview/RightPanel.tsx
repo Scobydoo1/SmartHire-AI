@@ -1,140 +1,171 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { memo, useEffect, useRef } from 'react'
 import { Wifi, WifiOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { toast } from 'sonner' // Using Sonner instead of Toast Component directly
+import { cn } from '@/lib/utils'
+import { useEmotionAnalysis } from './hooks/useEmotionAnalysis'
+import { EMOTION_BAR_COLOR, EMOTION_COLOR } from './config'
+import type { RightPanelProps } from './types'
 
-interface RightPanelProps {
-  mediaStream: MediaStream | null
-}
+// ---------------------------------------------------------------------------
+// Connection badge
+// ---------------------------------------------------------------------------
 
-export const RightPanel: React.FC<RightPanelProps> = ({ mediaStream }) => {
+const ConnectionBadge = memo(function ConnectionBadge({ connected }: { connected: boolean }) {
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        'flex items-center gap-2 px-3 py-1 transition-colors duration-300',
+        connected
+          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+          : 'border-red-500/30 bg-red-500/10 text-red-400',
+      )}
+      aria-label={connected ? 'WebSocket connected' : 'Reconnecting…'}
+    >
+      {connected ? (
+        <Wifi className="h-3 w-3" aria-hidden="true" />
+      ) : (
+        <WifiOff className="h-3 w-3 animate-pulse" aria-hidden="true" />
+      )}
+      {connected ? 'Connected' : 'Reconnecting…'}
+    </Badge>
+  )
+})
+
+// ---------------------------------------------------------------------------
+// Candidate camera feed
+// ---------------------------------------------------------------------------
+
+const CameraFeed = memo(function CameraFeed({ stream }: { stream: MediaStream | null }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [isConnected, setIsConnected] = useState(true)
-  const [emotion, setEmotion] = useState('Neutral')
-  const [emotionScore, setEmotionScore] = useState(65)
 
   useEffect(() => {
-    if (videoRef.current && mediaStream) {
-      videoRef.current.srcObject = mediaStream
+    const video = videoRef.current
+    if (!video) return
+
+    if (stream) {
+      video.srcObject = stream
+    } else {
+      video.srcObject = null
     }
-  }, [mediaStream])
 
-  // Mocking WebSocket connection and Emotion Gauge
-  useEffect(() => {
-    const emotions = ['Focused', 'Thinking', 'Neutral', 'Frustrated', 'Confident']
-
-    const wsInterval = setInterval(() => {
-      // Mocking live emotion changes every 5s
-      const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)]
-      setEmotion(randomEmotion)
-      setEmotionScore(Math.floor(Math.random() * 40) + 60)
-
-      // Mock random latency spikes or disconnects
-      if (Math.random() > 0.95) {
-        setIsConnected(false)
-        toast.error('WebSocket Disconnected', {
-          description: 'Attempting to reconnect...',
-        })
-
-        // Auto reconnect
-        setTimeout(() => {
-          setIsConnected(true)
-          toast.success('Connection Restored')
-        }, 3000)
-      }
-    }, 5000)
-
-    return () => clearInterval(wsInterval)
-  }, [])
+    // Clean up srcObject on unmount to release the media track.
+    return () => {
+      if (video) video.srcObject = null
+    }
+  }, [stream])
 
   return (
-    <div className="flex h-full flex-col gap-4 bg-zinc-950/50 p-4">
-      {/* Network Status Top Right */}
-      <div className="flex justify-end pr-2">
-        <Badge
-          variant="outline"
-          className={`flex items-center gap-2 px-3 py-1 ${
-            isConnected
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border-red-500/30 bg-red-500/10 text-red-400'
-          }`}
+    <div
+      className="relative aspect-video overflow-hidden rounded-lg border border-border bg-card shadow-lg"
+      aria-label="Candidate camera feed"
+    >
+      {stream ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="h-full w-full -scale-x-100 object-cover"
+          aria-label="Your camera preview (mirrored)"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
+          role="status"
         >
-          {isConnected ? (
-            <Wifi className="h-3 w-3" />
-          ) : (
-            <WifiOff className="h-3 w-3 animate-pulse" />
-          )}
-          {isConnected ? 'Connected' : 'Reconnecting...'}
-        </Badge>
-      </div>
-
-      {/* Candidate Camera Stream */}
-      <div className="relative aspect-video overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-lg">
-        {mediaStream ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="h-full w-full -scale-x-100 transform object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-600">
-            Camera Off
-          </div>
-        )}
-
-        {/* Recording Indicator Overlay */}
-        <div className="absolute top-3 left-3 flex items-center gap-2 rounded-md bg-black/50 px-2 py-1 backdrop-blur-md">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-          <span className="text-[10px] font-bold tracking-widest text-zinc-300 uppercase">REC</span>
+          Camera Off
         </div>
+      )}
+
+      {/* Recording indicator */}
+      <div
+        className="absolute top-3 left-3 flex items-center gap-2 rounded-md bg-black/50 px-2 py-1 backdrop-blur-md"
+        aria-label="Session recording in progress"
+      >
+        <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" aria-hidden="true" />
+          <span className="text-[10px] font-bold tracking-widest text-foreground/70 uppercase">REC</span>
+      </div>
+    </div>
+  )
+})
+
+// ---------------------------------------------------------------------------
+// Panel
+// ---------------------------------------------------------------------------
+
+export const RightPanel: React.FC<RightPanelProps> = ({ mediaStream }) => {
+  const { snapshot, isConnected } = useEmotionAnalysis()
+  const { label, score } = snapshot
+
+  return (
+    <div
+      className="flex h-full flex-col gap-4 bg-background/50 p-4"
+      aria-label="Candidate monitoring panel"
+    >
+      {/* Network status */}
+      <div className="flex justify-end">
+        <ConnectionBadge connected={isConnected} />
       </div>
 
-      {/* Emotion Gauge Widget */}
-      <Card className="flex flex-col gap-4 border-zinc-800 bg-zinc-900/40 p-5">
+      {/* Camera */}
+      <CameraFeed stream={mediaStream} />
+
+      {/* Emotion / confidence widget */}
+      <Card
+        className="flex flex-col gap-4 border-border bg-card/40 p-5"
+        role="region"
+        aria-label="Real-time emotion analysis"
+      >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-zinc-300">Real-time Analysis</h3>
-          <span className="text-xs text-zinc-500">Live</span>
+          <h3 className="text-sm font-semibold text-foreground/70">Real-time Analysis</h3>
+          <span className="text-xs text-muted-foreground" aria-hidden="true">
+            Live
+          </span>
         </div>
 
         <div className="flex items-end justify-between">
           <div>
-            <div className="mb-1 text-xs tracking-wider text-zinc-500 uppercase">State</div>
-            <div
-              className={`text-xl font-bold ${
-                emotion === 'Frustrated'
-                  ? 'text-orange-400'
-                  : emotion === 'Focused' || emotion === 'Confident'
-                    ? 'text-emerald-400'
-                    : 'text-zinc-300'
-              }`}
+            <p className="mb-1 text-xs tracking-wider text-muted-foreground uppercase">State</p>
+            <p
+              className={cn('text-xl font-bold transition-colors duration-500', EMOTION_COLOR[label])}
+              aria-live="polite"
+              aria-atomic="true"
             >
-              {emotion}
-            </div>
+              {label}
+            </p>
           </div>
-
           <div className="text-right">
-            <div className="mb-1 text-xs tracking-wider text-zinc-500 uppercase">Confidence</div>
-            <div className="text-2xl font-light text-zinc-100">{emotionScore}%</div>
+            <p className="mb-1 text-xs tracking-wider text-muted-foreground uppercase">Confidence</p>
+            <p className="text-2xl font-light text-foreground" aria-live="polite" aria-atomic="true">
+              {score}%
+            </p>
           </div>
         </div>
 
-        {/* Emotion Progress Bar */}
-        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+        {/* Confidence bar */}
+        <div
+          className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+          aria-valuenow={score}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Confidence score: ${score}%`}
+        >
           <div
-            className="h-full bg-emerald-500 transition-all duration-1000 ease-in-out"
-            style={{ width: `${emotionScore}%` }}
+            className={cn('h-full transition-all duration-1000 ease-in-out', EMOTION_BAR_COLOR[label])}
+            style={{ width: `${score}%` }}
           />
         </div>
       </Card>
 
-      {/* Session Controls */}
+      {/* Session status footer */}
       <div className="mt-auto">
         <Badge
           variant="outline"
-          className="w-full justify-center border-zinc-800 py-2 text-zinc-500"
+          className="w-full justify-center border-border py-2 text-muted-foreground"
+          role="status"
         >
           Interview in Progress
         </Badge>
@@ -142,3 +173,5 @@ export const RightPanel: React.FC<RightPanelProps> = ({ mediaStream }) => {
     </div>
   )
 }
+
+
