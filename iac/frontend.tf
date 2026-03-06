@@ -85,9 +85,9 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  price_class         = "PriceClass_100"
   comment             = "${var.project_name} Frontend (${var.environment})"
   wait_for_deployment = false
+  web_acl_id          = "arn:aws:wafv2:us-east-1:116527261062:global/webacl/CreatedByCloudFront-4cfcba52/dda62f68-4276-4085-b027-938ce627350b"
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
