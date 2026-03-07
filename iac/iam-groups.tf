@@ -72,6 +72,43 @@ resource "aws_iam_group_policy" "ai_policy" {
         ]
       },
       {
+        Sid    = "TranscribeAccess"
+        Effect = "Allow"
+        Action = [
+          "transcribe:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "PollyAccess"
+        Effect = "Allow"
+        Action = [
+          "polly:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "RekognitionAccess"
+        Effect = "Allow"
+        Action = [
+          "rekognition:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "IAMAccessKeyManagement"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateAccessKey",
+          "iam:ListAccessKeys",
+          "iam:DeleteAccessKey",
+          "iam:UpdateAccessKey",
+          "iam:GetUser",
+          "iam:ListUsers"
+        ]
+        Resource = "*"
+      },
+      {
         Sid    = "CloudWatchLogs"
         Effect = "Allow"
         Action = [
@@ -210,6 +247,40 @@ resource "aws_iam_group_policy" "backend_policy" {
           "secretsmanager:DescribeSecret"
         ]
         Resource = "arn:aws:secretsmanager:${var.aws_region}:*:secret:${var.project_name}/*"
+      },
+      {
+        Sid    = "SQSAccess"
+        Effect = "Allow"
+        Action = [
+          "sqs:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "SNSAccess"
+        Effect = "Allow"
+        Action = [
+          "sns:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "SESAccess"
+        Effect = "Allow"
+        Action = [
+          "ses:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "DocumentProcessingAndAI"
+        Effect = "Allow"
+        Action = [
+          "s3:*",
+          "textract:*",
+          "bedrock:*"
+        ]
+        Resource = "*"
       },
       {
         Sid    = "CloudWatchLogs"
