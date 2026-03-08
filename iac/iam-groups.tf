@@ -109,6 +109,89 @@ resource "aws_iam_group_policy" "ai_policy" {
         Resource = "*"
       },
       {
+        Sid    = "SecurityAudit"
+        Effect = "Allow"
+        Action = [
+          "access-analyzer:*",
+          "acm:Describe*",
+          "acm:List*",
+          "apigateway:Get",
+          "athena:List*",
+          "cloudtrail:Describe*",
+          "cloudtrail:List*",
+          "cloudtrail:LookupEvents",
+          "config:Describe*",
+          "config:Get*",
+          "config:List*",
+          "ec2:Describe*",
+          "iam:Get*",
+          "iam:List*",
+          "kms:Describe*",
+          "kms:Get*",
+          "kms:List*",
+          "logs:Describe*",
+          "s3:Get*",
+          "s3:List*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "CloudTrailFullAccess"
+        Effect = "Allow"
+        Action = [
+          "cloudtrail:*",
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "IAMFullAccess"
+        Effect = "Allow"
+        Action = [
+          "iam:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "WAFConsoleFullAccess"
+        Effect = "Allow"
+        Action = [
+          "waf:*",
+          "wafv2:*",
+          "shield:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "CognitoPowerUser"
+        Effect = "Allow"
+        Action = [
+          "cognito-idp:*",
+          "cognito-identity:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "KMSPowerUser"
+        Effect = "Allow"
+        Action = [
+          "kms:CreateGrant",
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:GetPublicKey",
+          "kms:ReEncrypt",
+          "kms:CreateKey",
+          "kms:CreateAlias",
+          "kms:DeleteAlias",
+          "kms:UpdateAlias",
+          "kms:List*"
+        ]
+        Resource = "*"
+      },
+      {
         Sid    = "CloudWatchLogs"
         Effect = "Allow"
         Action = [
