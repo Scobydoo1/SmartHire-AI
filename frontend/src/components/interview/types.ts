@@ -52,6 +52,12 @@ export interface EmotionSnapshot {
 }
 
 // ---------------------------------------------------------------------------
+// Session Recorder
+// ---------------------------------------------------------------------------
+
+export type UploadStatus = 'idle' | 'recording' | 'uploading' | 'done' | 'error'
+
+// ---------------------------------------------------------------------------
 // Component Props
 // ---------------------------------------------------------------------------
 
@@ -65,6 +71,8 @@ export interface LeftPanelProps {
   aiState?: AIState
   /** Transcript messages to render. Pass `undefined` to use default seed. */
   transcript?: TranscriptMessage[]
+  /** Whether the mic is actively recording user speech. */
+  isListening?: boolean
 }
 
 export interface CenterPanelProps {
