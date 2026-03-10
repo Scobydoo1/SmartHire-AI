@@ -11,6 +11,10 @@ interface UseSpeechTranscriptReturn {
   clearTranscript: () => void
 }
 
+/** Check browser support once */
+const getSR = (): (new () => SpeechRecognition) | null =>
+  (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null
+
 export function useSpeechTranscript(
   stream: MediaStream | null,
 ): UseSpeechTranscriptReturn {
@@ -32,42 +36,68 @@ export function useSpeechTranscript(
 
   const stop = useCallback(() => {
     activeRef.current = false
-    recogRef.current?.stop()
+    recogRef.current?.abort()
     recogRef.current = null
     setIsListening(false)
   }, [])
 
   const start = useCallback(() => {
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
-    if (!SR || !stream || activeRef.current) return
+    const SR = getSR()
+    if (!SR) {
+      console.warn('[Speech] Web Speech API not supported in this browser')
+      return
+    }
+    if (!stream) {
+      console.warn('[Speech] No media stream available yet')
+      return
+    }
+    if (activeRef.current) return
 
-    const r: SpeechRecognition = new SR()
+    const r = new SR()
     r.continuous     = true
     r.interimResults = true
-    r.lang           = 'en-US'   // ✅ fixed: was 'vi-VN'
+    r.lang           = 'en-US'  // ✅ English
+
+    r.onstart = () => {
+      console.info('[Speech] Started listening (en-US)')
+      setIsListening(true)
+    }
 
     r.onresult = ({ results, resultIndex }: SpeechRecognitionEvent) => {
       for (let i = resultIndex; i < results.length; i++) {
         const text = results[i][0].transcript.trim()
+        console.debug('[Speech] result:', results[i].isFinal ? 'FINAL' : 'interim', text)
         if (results[i].isFinal && text) addMessage('user', text)
       }
     }
 
-    r.onend = () => {
-      if (activeRef.current) try { r.start() } catch {}
-      else setIsListening(false)
+    r.onerror = (event: Event) => {
+      const error = (event as any).error as string
+      console.warn('[Speech] error:', error)
+      if (error === 'not-allowed' || error === 'service-not-allowed') {
+        stop()
+        return
+      }
+      // other errors: let onend handle restart
     }
 
-    r.onerror = (event: Event) => {
-      const error = (event as any).error
-      if (error === 'no-speech') return
-      if (error === 'not-allowed') { stop(); return }
+    r.onend = () => {
+      console.info('[Speech] onend — activeRef:', activeRef.current)
+      if (activeRef.current) {
+        try { r.start() } catch (e) { console.warn('[Speech] restart failed:', e) }
+      } else {
+        setIsListening(false)
+      }
     }
 
     recogRef.current  = r
     activeRef.current = true
-    setIsListening(true)
-    try { r.start() } catch {}
+    try {
+      r.start()
+    } catch (e) {
+      console.error('[Speech] initial start failed:', e)
+      activeRef.current = false
+    }
   }, [stream, addMessage, stop])
 
   useEffect(() => {

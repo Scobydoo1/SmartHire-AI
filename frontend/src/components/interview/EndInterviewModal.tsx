@@ -4,9 +4,9 @@ import {
   DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { LogOut, Loader2, CheckCircle2, AlertCircle, CloudUpload } from 'lucide-react'
+import { LogOut, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { UploadStatus } from './hooks/useSessionRecorder'
+import type { UploadStatus } from './types'  // ✅ fixed: was './hooks/useSessionRecorder'
 
 interface Props {
   open: boolean
@@ -20,11 +20,11 @@ const fmt = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
 const STATUS_UI: Record<UploadStatus, { icon: React.ReactNode; text: string; color: string }> = {
-  idle:      { icon: <LogOut className="h-5 w-5" />,        text: 'Ready to end session', color: 'text-muted-foreground' },
-  recording: { icon: <LogOut className="h-5 w-5" />,        text: 'Ready to end session', color: 'text-muted-foreground' },
-  uploading: { icon: <Loader2 className="h-5 w-5 animate-spin" />, text: 'Saving your session…', color: 'text-blue-400' },
-  done:      { icon: <CheckCircle2 className="h-5 w-5" />,  text: 'Session saved!',        color: 'text-emerald-400' },
-  error:     { icon: <AlertCircle className="h-5 w-5" />,   text: 'Upload failed. Retry?', color: 'text-red-400' },
+  idle:      { icon: <LogOut className="h-5 w-5" />,                        text: 'Ready to end session',   color: 'text-muted-foreground' },
+  recording: { icon: <LogOut className="h-5 w-5" />,                        text: 'Ready to end session',   color: 'text-muted-foreground' },
+  uploading: { icon: <Loader2 className="h-5 w-5 animate-spin" />,          text: 'Saving your session…',  color: 'text-blue-400' },
+  done:      { icon: <CheckCircle2 className="h-5 w-5" />,                  text: 'Session saved!',          color: 'text-emerald-400' },
+  error:     { icon: <AlertCircle className="h-5 w-5" />,                   text: 'Upload failed. Retry?',  color: 'text-red-400' },
 }
 
 export const EndInterviewModal = memo(function EndInterviewModal({
@@ -32,6 +32,7 @@ export const EndInterviewModal = memo(function EndInterviewModal({
 }: Props) {
   const isUploading = uploadStatus === 'uploading'
   const isDone      = uploadStatus === 'done'
+  const isError     = uploadStatus === 'error'
   const { icon, text, color } = STATUS_UI[uploadStatus]
 
   return (
@@ -57,14 +58,13 @@ export const EndInterviewModal = memo(function EndInterviewModal({
           <div>
             <p className="text-sm font-medium">{text}</p>
             {isUploading && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Video + audio → S3 → AI pipeline
-              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">Video + audio → S3 → AI pipeline</p>
             )}
             {isDone && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Your recording has been submitted for analysis
-              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">Your recording has been submitted for analysis</p>
+            )}
+            {isError && (
+              <p className="text-xs text-muted-foreground mt-0.5">Check console for details</p>
             )}
           </div>
         </div>
@@ -76,6 +76,7 @@ export const EndInterviewModal = memo(function EndInterviewModal({
         )}
 
         <DialogFooter className="gap-2">
+          {/* Cancel / Continue button — hidden only when done */}
           {!isDone && (
             <Button
               variant="outline"
@@ -86,18 +87,20 @@ export const EndInterviewModal = memo(function EndInterviewModal({
               Continue Interview
             </Button>
           )}
+
+          {/* Primary action button */}
           <Button
-            onClick={isDone ? onCancel : onConfirm}
+            onClick={isDone ? onCancel : onConfirm}  // error state → onConfirm = retry
             disabled={isUploading}
             className={cn(
               'flex-1 font-medium',
-              isDone
-                ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400'
-                : 'bg-red-500/90 text-white hover:bg-red-500',
+              isDone  ? 'bg-emerald-500 text-zinc-950 hover:bg-emerald-400' :
+              isError ? 'bg-orange-500 text-white hover:bg-orange-400' :
+                        'bg-red-500/90 text-white hover:bg-red-500',
             )}
           >
             {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isUploading ? 'Uploading…' : isDone ? 'Close' : 'End & Submit'}
+            {isUploading ? 'Uploading…' : isDone ? 'Close' : isError ? 'Retry' : 'End & Submit'}
           </Button>
         </DialogFooter>
       </DialogContent>
