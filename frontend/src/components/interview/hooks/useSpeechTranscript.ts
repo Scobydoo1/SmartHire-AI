@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import type { TranscriptMessage } from '../types'
 
-
-
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 
 interface UseSpeechTranscriptReturn {
@@ -22,14 +20,14 @@ export function useSpeechTranscript(
   }])
   const [isListening, setIsListening] = useState(false)
 
-  const recogRef   = useRef<SpeechRecognition | null>(null)
-  const activeRef  = useRef(false)
+  const recogRef  = useRef<SpeechRecognition | null>(null)
+  const activeRef = useRef(false)
 
   const addMessage = useCallback((sender: 'user' | 'ai', text: string) => {
     setTranscript((p) => [...p, { id: uid(), sender, text }])
   }, [])
 
-  const addAIMessage   = useCallback((text: string) => addMessage('ai', text), [addMessage])
+  const addAIMessage    = useCallback((text: string) => addMessage('ai', text), [addMessage])
   const clearTranscript = useCallback(() => setTranscript([]), [])
 
   const stop = useCallback(() => {
@@ -39,15 +37,14 @@ export function useSpeechTranscript(
     setIsListening(false)
   }, [])
 
-  // ── Khởi tạo + start SpeechRecognition ───────────────────────────────────
   const start = useCallback(() => {
-    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
     if (!SR || !stream || activeRef.current) return
 
-    const r = new SR()
+    const r: SpeechRecognition = new SR()
     r.continuous     = true
     r.interimResults = true
-    r.lang           = 'vi-VN'   // đổi 'en-US' nếu cần
+    r.lang           = 'en-US'   // ✅ fixed: was 'vi-VN'
 
     r.onresult = ({ results, resultIndex }: SpeechRecognitionEvent) => {
       for (let i = resultIndex; i < results.length; i++) {
@@ -56,7 +53,6 @@ export function useSpeechTranscript(
       }
     }
 
-    // Auto-restart khi bị ngắt
     r.onend = () => {
       if (activeRef.current) try { r.start() } catch {}
       else setIsListening(false)
@@ -64,7 +60,7 @@ export function useSpeechTranscript(
 
     r.onerror = (event: Event) => {
       const error = (event as any).error
-      if (error === 'no-speech') return   // bình thường, bỏ qua
+      if (error === 'no-speech') return
       if (error === 'not-allowed') { stop(); return }
     }
 
@@ -74,7 +70,6 @@ export function useSpeechTranscript(
     try { r.start() } catch {}
   }, [stream, addMessage, stop])
 
-  // Auto start/stop theo stream
   useEffect(() => {
     if (stream) start()
     return stop
