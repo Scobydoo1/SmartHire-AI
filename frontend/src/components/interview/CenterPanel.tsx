@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useState } from 'react'
 import Editor from '@monaco-editor/react'
 import { useTheme } from '@/components/theme'
-import { Play, Square, Maximize2, Minimize2, Trash2 } from 'lucide-react'
+import { Play, Square, Maximize2, Minimize2, Trash2, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -15,10 +15,9 @@ import { useCodeRunner } from './hooks/useCodeRunner'
 import { DEFAULT_CODE_PLACEHOLDER, LANGUAGE_OPTIONS, MONACO_OPTIONS } from './config'
 import type { CenterPanelProps } from './types'
 
-// ---------------------------------------------------------------------------
-// Top bar – language selector + actions
-// ---------------------------------------------------------------------------
-
+// ─────────────────────────────────────────────────────────────────────────────
+// EditorTopBar
+// ─────────────────────────────────────────────────────────────────────────────
 const EditorTopBar = memo(function EditorTopBar({
   language,
   onLanguageChange,
@@ -26,6 +25,7 @@ const EditorTopBar = memo(function EditorTopBar({
   isFullscreen,
   onRun,
   onToggleFullscreen,
+  onEndInterview,
 }: {
   language: string
   onLanguageChange: (lang: string) => void
@@ -33,6 +33,7 @@ const EditorTopBar = memo(function EditorTopBar({
   isFullscreen: boolean
   onRun: () => void
   onToggleFullscreen: () => void
+  onEndInterview?: () => void
 }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-4">
@@ -62,36 +63,46 @@ const EditorTopBar = memo(function EditorTopBar({
           aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           className="cursor-pointer border-border bg-card hover:bg-muted hover:text-foreground"
         >
-          {isFullscreen ? (
-            <Minimize2 className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <Maximize2 className="h-4 w-4" aria-hidden="true" />
-          )}
+          {isFullscreen
+            ? <Minimize2 className="h-4 w-4" aria-hidden="true" />
+            : <Maximize2 className="h-4 w-4" aria-hidden="true" />
+          }
         </Button>
 
-        {/* Run / stop */}
+        {/* Run Code */}
         <Button
           onClick={onRun}
           disabled={isRunning}
           aria-busy={isRunning}
           className="cursor-pointer gap-2 bg-emerald-500 font-bold text-zinc-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isRunning ? (
-            <Square className="h-4 w-4" fill="currentColor" aria-hidden="true" />
-          ) : (
-            <Play className="h-4 w-4" fill="currentColor" aria-hidden="true" />
-          )}
+          {isRunning
+            ? <Square className="h-4 w-4" fill="currentColor" aria-hidden="true" />
+            : <Play  className="h-4 w-4" fill="currentColor" aria-hidden="true" />
+          }
           {isRunning ? 'Running…' : 'Run Code'}
         </Button>
+
+        {/* End Interview */}
+        {onEndInterview && (
+          <Button
+            variant="outline"
+            onClick={onEndInterview}
+            className="cursor-pointer gap-2 border-red-500/40 bg-red-500/10 text-red-400 transition-colors hover:bg-red-500/20 hover:text-red-300"
+            aria-label="End interview session"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            End Interview
+          </Button>
+        )}
       </div>
     </div>
   )
 })
 
-// ---------------------------------------------------------------------------
-// Output console
-// ---------------------------------------------------------------------------
-
+// ─────────────────────────────────────────────────────────────────────────────
+// OutputConsole
+// ─────────────────────────────────────────────────────────────────────────────
 const OutputConsole = memo(function OutputConsole({
   output,
   onClear,
@@ -106,7 +117,7 @@ const OutputConsole = memo(function OutputConsole({
       aria-label="Output console"
     >
       <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2">
-        <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Output Console
         </span>
         {output && (
@@ -121,39 +132,40 @@ const OutputConsole = memo(function OutputConsole({
           </Button>
         )}
       </div>
-      <div className="flex-1 overflow-y-auto p-4 font-mono text-sm text-foreground/80" aria-live="polite">
+      <div
+        className="flex-1 overflow-y-auto p-4 font-mono text-sm text-foreground/80"
+        aria-live="polite"
+      >
         {output ? (
           <pre className="whitespace-pre-wrap">{output}</pre>
         ) : (
-          <span className="italic text-muted-foreground/60">Code execution results will appear here…</span>
+          <span className="italic text-muted-foreground/60">
+            Code execution results will appear here…
+          </span>
         )}
       </div>
     </div>
   )
 })
 
-// ---------------------------------------------------------------------------
-// Panel
-// ---------------------------------------------------------------------------
-
+// ─────────────────────────────────────────────────────────────────────────────
+// CenterPanel
+// ─────────────────────────────────────────────────────────────────────────────
 export const CenterPanel: React.FC<CenterPanelProps> = ({
-  defaultCode = DEFAULT_CODE_PLACEHOLDER,
+  defaultCode    = DEFAULT_CODE_PLACEHOLDER,
   defaultLanguage = 'javascript',
+  onEndInterview,
 }) => {
   const { resolvedTheme } = useTheme()
-  const [language, setLanguage] = useState(defaultLanguage)
-  const [code, setCode] = useState(defaultCode)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [language, setLanguage]       = useState(defaultLanguage)
+  const [code, setCode]               = useState(defaultCode)
+  const [isFullscreen, setFullscreen] = useState(false)
 
   const { output, isRunning, runCode, clearOutput } = useCodeRunner()
 
-  const handleRun = useCallback(() => runCode(code, language), [runCode, code, language])
-
-  const handleCodeChange = useCallback((val: string | undefined) => {
-    setCode(val ?? '')
-  }, [])
-
-  const handleToggleFullscreen = useCallback(() => setIsFullscreen((v) => !v), [])
+  const handleRun             = useCallback(() => runCode(code, language), [runCode, code, language])
+  const handleCodeChange      = useCallback((val?: string) => setCode(val ?? ''), [])
+  const handleToggleFullscreen = useCallback(() => setFullscreen((v) => !v), [])
 
   return (
     <div
@@ -171,6 +183,7 @@ export const CenterPanel: React.FC<CenterPanelProps> = ({
         isFullscreen={isFullscreen}
         onRun={handleRun}
         onToggleFullscreen={handleToggleFullscreen}
+        onEndInterview={onEndInterview}
       />
 
       {/* Monaco Editor */}

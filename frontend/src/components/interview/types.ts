@@ -56,8 +56,8 @@ export interface EmotionSnapshot {
 // ---------------------------------------------------------------------------
 
 export interface PermissionsModalProps {
-  /** Called once camera + microphone are granted. */
-  onPermissionsGranted: (stream: MediaStream) => void
+  /** Callback sau khi user grant — useMediaDevices tự quản lý stream */
+  onPermissionsGranted: () => Promise<void>
 }
 
 export interface LeftPanelProps {
@@ -72,11 +72,16 @@ export interface CenterPanelProps {
   defaultCode?: string
   /** Initial language key (must match a `LanguageOption.value`). */
   defaultLanguage?: string
+  onEndInterview?: () => void
 }
 
 export interface RightPanelProps {
   /** Live media stream from `getUserMedia`. Null = camera off. */
   mediaStream: MediaStream | null
+  isMicMuted: boolean
+  isCameraOff: boolean
+  onToggleMic: () => void
+  onToggleCamera: () => void
 }
 
 /**

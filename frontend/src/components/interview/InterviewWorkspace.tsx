@@ -15,66 +15,113 @@
  *  - `onSessionEnd`    – called when the session ends (reserved for future use)
  */
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, lazy, Suspense, useState } from 'react'
 import { Toaster } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/components/theme'
 import { PermissionsModal } from './PermissionsModal'
-import { LeftPanel } from './LeftPanel'
-import { CenterPanel } from './CenterPanel'
-import { RightPanel } from './RightPanel'
+import { EndInterviewModal } from './EndInterviewModal'
+import { useMediaDevices } from './hooks/useMediaDevices'
+import { useSpeechTranscript } from './hooks/useSpeechTranscript'
+import { useSessionRecorder } from './hooks/useSessionRecorder'
 import type { InterviewWorkspaceProps } from './types'
 
+const LeftPanel   = lazy(() => import('./LeftPanel').then((m) => ({ default: m.LeftPanel })))
+const CenterPanel = lazy(() => import('./CenterPanel').then((m) => ({ default: m.CenterPanel })))
+const RightPanel  = lazy(() => import('./RightPanel').then((m) => ({ default: m.RightPanel })))
+
+// sessionId từ URL param ?code=xxx
+const SESSION_ID = new URLSearchParams(window.location.search).get('code') ?? 'unknown'
+
+const PanelSkeleton = () => <div className="h-full w-full animate-pulse rounded-lg bg-muted/20" />
+
 export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
-  skipPermissions = true,
+  skipPermissions = false,
 }) => {
   const { resolvedTheme } = useTheme()
-  const [permissionsGranted, setPermissionsGranted] = useState(skipPermissions)
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
+  const [showEndModal, setShowEndModal] = useState(false)
 
-  const handlePermissionsGranted = useCallback((stream: MediaStream) => {
-    setMediaStream(stream)
-    setPermissionsGranted(true)
-  }, [])
+  const {
+    stream, isMicMuted, isCameraOff,
+    permissionsGranted, requestPermissions,
+    toggleMic, toggleCamera, stopAll,
+  } = useMediaDevices()
+
+  const { transcript, isListening, addAIMessage } = useSpeechTranscript(stream)
+  const { uploadStatus, duration, startRecording, stopAndUpload } = useSessionRecorder()
+
+  const isReady = skipPermissions || permissionsGranted
+
+  // Start recording ngay khi stream sẵn sàng
+  const handleGrant = useCallback(async () => {
+    await requestPermissions()
+  }, [requestPermissions])
+
+  // Stream sẵn → start recording
+  React.useEffect(() => {
+    if (stream && isReady) startRecording(stream)
+  }, [stream, isReady, startRecording])
+
+  // ── Xử lý End Interview ────────────────────────────────────────────────
+  const handleEndConfirm = useCallback(async () => {
+    await stopAndUpload(SESSION_ID, transcript)
+    stopAll()  // stop webcam sau khi upload xong
+  }, [stopAndUpload, transcript, stopAll])
+
+  const handleEndCancel = useCallback(() => {
+    if (uploadStatus === 'done') {
+      // Redirect về trang chủ sau khi upload xong
+      window.location.href = '/'
+    } else {
+      setShowEndModal(false)
+    }
+  }, [uploadStatus])
 
   return (
-    <div
-      className="h-screen w-full overflow-hidden bg-background font-sans text-foreground"
-      role="main"
-      aria-label="Interview workspace"
-    >
-      {/* Permissions gate — shown before media is ready */}
-      {!permissionsGranted && (
-        <PermissionsModal onPermissionsGranted={handlePermissionsGranted} />
-      )}
+    <div className="h-screen w-full overflow-hidden bg-background font-sans text-foreground" role="main">
+      {!isReady && <PermissionsModal onPermissionsGranted={handleGrant} />}
 
-      {/* Three-column layout — fades in once permissions are granted */}
       <div
         className={cn(
           'flex h-full w-full transition-opacity duration-500',
-          permissionsGranted ? 'opacity-100' : 'pointer-events-none opacity-0',
+          isReady ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
-        aria-hidden={!permissionsGranted}
+        aria-hidden={!isReady}
       >
-        {/* Left: AI Presence & Live Transcript — 25 %, min 300 px */}
-        <div className="h-full w-1/4 min-w-75">
-          <LeftPanel />
-        </div>
+        <Suspense fallback={<div className="h-full w-1/4 min-w-75"><PanelSkeleton /></div>}>
+          <div className="h-full w-1/4 min-w-75">
+            <LeftPanel transcript={transcript} isListening={isListening} />
+          </div>
+        </Suspense>
 
-        {/* Center: Code Editor & Output Console — fills remaining space */}
-        <div className="h-full min-w-125 flex-1">
-          <CenterPanel />
-        </div>
+        <Suspense fallback={<div className="h-full min-w-125 flex-1"><PanelSkeleton /></div>}>
+          <div className="h-full min-w-125 flex-1">
+            <CenterPanel onEndInterview={() => setShowEndModal(true)} />
+          </div>
+        </Suspense>
 
-        {/* Right: Candidate Camera & Emotion Analysis — 20 %, min 280 px */}
-        <div className="h-full w-1/5 min-w-70">
-          <RightPanel mediaStream={mediaStream} />
-        </div>
+        <Suspense fallback={<div className="h-full w-1/5 min-w-70"><PanelSkeleton /></div>}>
+          <div className="h-full w-1/5 min-w-70">
+            <RightPanel
+              mediaStream={stream}
+              isMicMuted={isMicMuted}
+              isCameraOff={isCameraOff}
+              onToggleMic={toggleMic}
+              onToggleCamera={toggleCamera}
+            />
+          </div>
+        </Suspense>
       </div>
 
-      {/* Toast notifications — follows the active theme */}
+      <EndInterviewModal
+        open={showEndModal}
+        uploadStatus={uploadStatus}
+        duration={duration}
+        onConfirm={handleEndConfirm}
+        onCancel={handleEndCancel}
+      />
+
       <Toaster theme={resolvedTheme} position="top-right" />
     </div>
   )
 }
-

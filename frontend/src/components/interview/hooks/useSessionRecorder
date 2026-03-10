@@ -1,0 +1,98 @@
+import { useState, useCallback, useRef } from 'react'
+export type UploadStatus = 'idle' | 'recording' | 'uploading' | 'done' | 'error'
+
+interface UseSessionRecorderReturn {
+  uploadStatus: UploadStatus
+  duration: number
+  startRecording: (stream: MediaStream) => void
+  stopAndUpload: (sessionId: string, transcript: { sender: string; text: string }[]) => Promise<void>
+}
+
+// Chọn codec tốt nhất browser hỗ trợ — 1 lần duy nhất
+const MIME = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
+  .find((t) => MediaRecorder.isTypeSupported(t)) ?? 'video/webm'
+
+const EXT = MIME.includes('mp4') ? 'mp4' : 'webm'
+
+export function useSessionRecorder(): UseSessionRecorderReturn {
+  const [uploadStatus, setStatus] = useState<UploadStatus>('idle')
+  const [duration, setDuration]   = useState(0)
+
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef   = useRef<Blob[]>([])
+  const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startRef    = useRef(0)
+
+  const startRecording = useCallback((stream: MediaStream) => {
+    if (recorderRef.current) return
+
+    const rec = new MediaRecorder(stream, {
+      mimeType:             MIME,
+      videoBitsPerSecond:   800_000,   // 800kbps — đủ chất lượng, nhẹ file
+      audioBitsPerSecond:   96_000,
+    })
+
+    chunksRef.current       = []
+    rec.ondataavailable     = ({ data }) => { if (data.size > 0) chunksRef.current.push(data) }
+    rec.start(1000)          // chunk mỗi 1s
+
+    recorderRef.current = rec
+    startRef.current    = Date.now()
+    setStatus('recording')
+    setDuration(0)
+
+    timerRef.current = setInterval(
+      () => setDuration(Math.floor((Date.now() - startRef.current) / 1000)),
+      1000,
+    )
+  }, [])
+
+  const stopAndUpload = useCallback(async (
+    sessionId: string,
+    transcript: { sender: string; text: string }[],
+  ) => {
+    const rec = recorderRef.current
+    if (!rec) return
+
+    if (timerRef.current) clearInterval(timerRef.current)
+
+    // Dừng recorder, chờ flush chunk cuối
+    await new Promise<void>((res) => { rec.onstop = () => res(); rec.stop() })
+    recorderRef.current = null
+    setStatus('uploading')
+
+    try {
+      const blob = new Blob(chunksRef.current, { type: MIME })
+      chunksRef.current = []
+      const finalDuration = Math.floor((Date.now() - startRef.current) / 1000)
+
+      // ── 1. Lấy presigned URL ──────────────────────────────────────────
+      const { uploadUrl, s3Key } = await fetch(
+        `${import.meta.env.VITE_API_GATEWAY_URL}/sessions/${sessionId}/upload-url`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: `${sessionId}.${EXT}`, mimeType: MIME, sizeBytes: blob.size }),
+        },
+      ).then((r) => { if (!r.ok) throw new Error('presign failed'); return r.json() })
+
+      // ── 2. Upload thẳng lên S3 ────────────────────────────────────────
+      const up = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': MIME }, body: blob })
+      if (!up.ok) throw new Error('s3 upload failed')
+
+      // ── 3. Notify backend → trigger Transcribe + Rekognition pipeline ─
+      await fetch(`${import.meta.env.VITE_API_GATEWAY_URL}/sessions/${sessionId}/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ s3Key, durationSeconds: finalDuration, transcript }),
+      })
+
+      setStatus('done')
+    } catch (e) {
+      console.error('[SessionRecorder] upload error:', e)
+      setStatus('error')
+    }
+  }, [])
+
+  return { uploadStatus, duration, startRecording, stopAndUpload }
+}
