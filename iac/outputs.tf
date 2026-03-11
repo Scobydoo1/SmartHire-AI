@@ -65,3 +65,80 @@ output "cloudfront_domain_name" {
   description = "CloudFront domain name (frontend URL)"
   value       = aws_cloudfront_distribution.frontend.domain_name
 }
+
+# ============================================
+# VPC Outputs
+# ============================================
+
+output "vpc_id" {
+  description = "VPC ID"
+  value       = aws_vpc.main.id
+}
+
+output "public_subnet_ids" {
+  description = "Public Subnet IDs"
+  value       = aws_subnet.public[*].id
+}
+
+output "private_db_subnet_ids" {
+  description = "Private DB Subnet IDs"
+  value       = aws_subnet.private_db[*].id
+}
+
+output "app_security_group_id" {
+  description = "App Security Group ID (dùng cho Lambda)"
+  value       = aws_security_group.app.id
+}
+
+output "rds_security_group_id" {
+  description = "RDS Security Group ID"
+  value       = aws_security_group.rds.id
+}
+
+# ============================================
+# RDS Outputs
+# ============================================
+
+output "rds_endpoint" {
+  description = "RDS endpoint address"
+  value       = aws_db_instance.main.address
+}
+
+output "rds_port" {
+  description = "RDS port"
+  value       = aws_db_instance.main.port
+}
+
+output "rds_database_name" {
+  description = "RDS database name"
+  value       = aws_db_instance.main.db_name
+}
+
+output "rds_instance_id" {
+  description = "RDS instance identifier"
+  value       = aws_db_instance.main.identifier
+}
+
+output "rds_secret_arn" {
+  description = "ARN of Secrets Manager secret chứa RDS credentials"
+  value       = aws_secretsmanager_secret.rds.arn
+}
+
+output "rds_secrets_kms_key_id" {
+  description = "KMS Key ID dùng để encrypt RDS secrets"
+  value       = aws_kms_key.secrets.id
+}
+
+output "rds_secrets_kms_key_arn" {
+  description = "KMS Key ARN dùng để encrypt RDS secrets"
+  value       = aws_kms_key.secrets.arn
+}
+
+# ============================================
+# Bastion Outputs
+# ============================================
+
+output "bastion_public_ip" {
+  description = "Public IP of Bastion Host"
+  value       = aws_eip.bastion.public_ip
+}

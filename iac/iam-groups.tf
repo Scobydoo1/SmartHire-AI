@@ -220,23 +220,15 @@ resource "aws_iam_group_policy" "frontend_policy" {
         Sid    = "S3FrontendDeployment"
         Effect = "Allow"
         Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:ListBucket"
+          "s3:*"
         ]
-        Resource = [
-          "arn:aws:s3:::${var.project_name}-frontend*",
-          "arn:aws:s3:::${var.project_name}-frontend*/*"
-        ]
+        Resource = "*"
       },
       {
         Sid    = "CloudFrontInvalidation"
         Effect = "Allow"
         Action = [
-          "cloudfront:CreateInvalidation",
-          "cloudfront:GetDistribution",
-          "cloudfront:ListDistributions"
+          "cloudfront:*"
         ]
         Resource = "*"
       },
@@ -277,15 +269,9 @@ resource "aws_iam_group_policy" "backend_policy" {
         Sid    = "LambdaManagement"
         Effect = "Allow"
         Action = [
-          "lambda:CreateFunction",
-          "lambda:UpdateFunctionCode",
-          "lambda:UpdateFunctionConfiguration",
-          "lambda:DeleteFunction",
-          "lambda:GetFunction",
-          "lambda:ListFunctions",
-          "lambda:InvokeFunction"
+          "lambda:*"
         ]
-        Resource = "arn:aws:lambda:${var.aws_region}:*:function:${var.project_name}-backend-*"
+        Resource = "*"
       },
       {
         Sid    = "APIGatewayManagement"
@@ -299,9 +285,7 @@ resource "aws_iam_group_policy" "backend_policy" {
         Sid    = "RDSAccess"
         Effect = "Allow"
         Action = [
-          "rds:DescribeDBInstances",
-          "rds:DescribeDBClusters",
-          "rds-db:connect"
+          "rds:*"
         ]
         Resource = "*"
       },
@@ -340,10 +324,57 @@ resource "aws_iam_group_policy" "backend_policy" {
         Resource = "*"
       },
       {
+        Sid    = "LambdaSQSTrigger"
+        Effect = "Allow"
+        Action = [
+          "lambda:CreateEventSourceMapping",
+          "lambda:DeleteEventSourceMapping",
+          "lambda:GetEventSourceMapping",
+          "lambda:ListEventSourceMappings",
+          "lambda:UpdateEventSourceMapping"
+        ]
+        Resource = "*"
+      },
+      {
         Sid    = "SNSAccess"
         Effect = "Allow"
         Action = [
           "sns:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "EventBridgeAccess"
+        Effect = "Allow"
+        Action = [
+          "events:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "StepFunctionsAccess"
+        Effect = "Allow"
+        Action = [
+          "states:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "KMSDecrypt"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey",
+          "kms:CreateGrant"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "CloudFormationAccess"
+        Effect = "Allow"
+        Action = [
+          "cloudformation:*"
         ]
         Resource = "*"
       },
@@ -369,12 +400,17 @@ resource "aws_iam_group_policy" "backend_policy" {
         Sid    = "CloudWatchLogs"
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogGroups"
+          "logs:*"
         ]
-        Resource = "arn:aws:logs:${var.aws_region}:*:log-group:/aws/lambda/${var.project_name}-*"
+        Resource = "*"
+      },
+      {
+        Sid    = "CloudWatchMetrics"
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:*"
+        ]
+        Resource = "*"
       },
       {
         Sid    = "CognitoFullAccess"
@@ -391,6 +427,48 @@ resource "aws_iam_group_policy" "backend_policy" {
           "cognito-idp:ListUserPools",
           "cognito-idp:DescribeUserPool",
           "cognito-idp:DescribeUserPoolClient"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "EC2FullAccess"
+        Effect = "Allow"
+        Action = [
+          "ec2:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "EC2SerialConsoleAccess"
+        Effect = "Allow"
+        Action = [
+          "ec2-instance-connect:SendSerialConsoleSSHPublicKey"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "IAMRoleManagement"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:GetRole",
+          "iam:ListRoles",
+          "iam:UpdateAssumeRolePolicy",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy",
+          "iam:CreatePolicy",
+          "iam:CreatePolicyVersion",
+          "iam:DeletePolicy",
+          "iam:DeletePolicyVersion",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:ListPolicies",
+          "iam:ListPolicyVersions",
+          "iam:PassRole",
+          "iam:ListRolePolicies"
         ]
         Resource = "*"
       }

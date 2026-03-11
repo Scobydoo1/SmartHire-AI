@@ -45,7 +45,7 @@ resource "aws_cognito_user_pool_client" "smarthire_frontend_client" {
   # OAuth Configuration for Google Login
   supported_identity_providers         = ["COGNITO", "Google"]
   allowed_oauth_flows_user_pool_client = true
-  allowed_oauth_flows                  = ["code", "implicit"]
+  allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["email", "openid", "profile", "aws.cognito.signin.user.admin"]
   callback_urls                        = ["http://localhost:5173/", "http://localhost:5173/login"]
   logout_urls                          = ["http://localhost:5173/", "http://localhost:5173/login"]

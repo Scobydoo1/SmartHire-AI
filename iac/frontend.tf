@@ -11,18 +11,7 @@ resource "aws_s3_bucket" "frontend" {
   })
 }
 
-resource "aws_s3_bucket_website_configuration" "frontend" {
-  bucket = aws_s3_bucket.frontend.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "index.html"
-  }
-}
-
+# [REMOVED S3 Website Configuration] - CloudFront OAC needs to fetch straight from the S3 REST API.
 # Block ALL public access — only CloudFront can read
 resource "aws_s3_bucket_public_access_block" "frontend" {
   bucket = aws_s3_bucket.frontend.id
@@ -87,7 +76,10 @@ resource "aws_cloudfront_distribution" "frontend" {
   default_root_object = "index.html"
   comment             = "${var.project_name} Frontend (${var.environment})"
   wait_for_deployment = false
-  web_acl_id          = "arn:aws:wafv2:us-east-1:116527261062:global/webacl/CreatedByCloudFront-4cfcba52/dda62f68-4276-4085-b027-938ce627350b"
+  web_acl_id          = var.existing_waf_arn
+
+  aliases = [var.domain_name, "www.${var.domain_name}"]
+
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -128,7 +120,9 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = aws_acm_certificate_validation.frontend_cert.certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 
   tags = merge(local.common_tags, {

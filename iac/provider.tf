@@ -1,3 +1,7 @@
+# ============================================
+# AWS Provider Configuration
+# ============================================
+
 terraform {
   required_providers {
     aws = {
@@ -5,17 +9,18 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  # Uncomment the following to use remote state (S3 + DynamoDB for locking)
-  # backend "s3" {
-  #   bucket         = "your-terraform-state-bucket"
-  #   key            = "smarthire/terraform.tfstate"
-  #   region         = "ap-southeast-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-locks"
-  # }
+  backend "local" {
+    # Store state file locally in the current directory
+    path = "terraform.tfstate"
+  }
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+# Required for CloudFront ACM certificates and WAF Global
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
 }

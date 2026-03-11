@@ -13,8 +13,12 @@ enable_ai_services       = true
 enable_frontend_services = true
 enable_backend_services  = true
 
+# RDS Configuration
+rds_master_username   = "smarthire_admin"
+rds_master_password   = "ChangeMe!Strong123" # THAY BẰỚC PASS NÀY
+rds_instance_class    = "db.t3.micro"        # dev; Prod dùng db.m5.large
+rds_allocated_storage = 20                   # GB
+
 # Example for production environment:
-# project_name = "smarthire"
-# environment  = "prod"
-# aws_region   = "ap-southeast-1"
-# cognito_password_min_length = r1frontend2
+# rds_instance_class    = "db.m5.large"
+# rds_allocated_storage = 100
