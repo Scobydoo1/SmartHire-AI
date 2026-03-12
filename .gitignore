@@ -51,3 +51,4 @@ tfplan
 # Ignore lock file
 .terraform.lock.hcl
 .infracost
+.zip
