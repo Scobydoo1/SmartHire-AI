@@ -52,12 +52,18 @@ export interface EmotionSnapshot {
 }
 
 // ---------------------------------------------------------------------------
+// Session Recorder
+// ---------------------------------------------------------------------------
+
+export type UploadStatus = 'idle' | 'recording' | 'uploading' | 'done' | 'error'
+
+// ---------------------------------------------------------------------------
 // Component Props
 // ---------------------------------------------------------------------------
 
 export interface PermissionsModalProps {
-  /** Called once camera + microphone are granted. */
-  onPermissionsGranted: (stream: MediaStream) => void
+  /** Callback sau khi user grant — useMediaDevices tự quản lý stream */
+  onPermissionsGranted: () => Promise<void>
 }
 
 export interface LeftPanelProps {
@@ -65,6 +71,8 @@ export interface LeftPanelProps {
   aiState?: AIState
   /** Transcript messages to render. Pass `undefined` to use default seed. */
   transcript?: TranscriptMessage[]
+  /** Whether the mic is actively recording user speech. */
+  isListening?: boolean
 }
 
 export interface CenterPanelProps {
@@ -72,11 +80,16 @@ export interface CenterPanelProps {
   defaultCode?: string
   /** Initial language key (must match a `LanguageOption.value`). */
   defaultLanguage?: string
+  onEndInterview?: () => void
 }
 
 export interface RightPanelProps {
   /** Live media stream from `getUserMedia`. Null = camera off. */
   mediaStream: MediaStream | null
+  isMicMuted: boolean
+  isCameraOff: boolean
+  onToggleMic: () => void
+  onToggleCamera: () => void
 }
 
 /**

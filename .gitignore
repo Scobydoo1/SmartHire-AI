@@ -3,7 +3,7 @@ frontend/node_modules/
 dist/
 frontend/dist/
 .env
-
+.env.local
 # Terraform local state files
 *.tfstate
 *.tfstate.*
