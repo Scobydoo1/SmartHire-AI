@@ -1,18 +1,12 @@
-# ============================================
-# S3 Bucket for Frontend Static Hosting
-# ============================================
-
 resource "aws_s3_bucket" "frontend" {
   bucket = "${var.project_name}-frontend-${var.environment}"
 
-  tags = merge(local.common_tags, {
+  tags = merge(var.common_tags, {
     Name    = "${var.project_name}-frontend-${var.environment}"
     Service = "Frontend"
   })
 }
 
-# [REMOVED S3 Website Configuration] - CloudFront OAC needs to fetch straight from the S3 REST API.
-# Block ALL public access — only CloudFront can read
 resource "aws_s3_bucket_public_access_block" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
@@ -22,10 +16,6 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
   restrict_public_buckets = true
 }
 
-# ============================================
-# CloudFront Origin Access Control (OAC)
-# ============================================
-
 resource "aws_cloudfront_origin_access_control" "frontend" {
   name                              = "${var.project_name}-frontend-oac-${var.environment}"
   description                       = "OAC for ${var.project_name} frontend S3 bucket"
@@ -33,12 +23,6 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
-
-# ============================================
-# S3 Bucket Policy — Allow CloudFront via OAC
-# ============================================
-
-data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
@@ -66,10 +50,6 @@ resource "aws_s3_bucket_policy" "frontend" {
   depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
 
-# ============================================
-# CloudFront Distribution
-# ============================================
-
 resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -79,7 +59,6 @@ resource "aws_cloudfront_distribution" "frontend" {
   web_acl_id          = var.existing_waf_arn
 
   aliases = [var.domain_name, "www.${var.domain_name}"]
-
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -93,12 +72,9 @@ resource "aws_cloudfront_distribution" "frontend" {
     target_origin_id       = "S3-${aws_s3_bucket.frontend.id}"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
-
-    # Use AWS Managed CachingOptimized policy (compatible with Free tier)
-    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
   }
 
-  # SPA routing: return index.html for 403/404 so client-side router handles paths
   custom_error_response {
     error_code            = 403
     response_code         = 200
@@ -120,13 +96,37 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.frontend_cert.certificate_arn
+    acm_certificate_arn      = var.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
-  tags = merge(local.common_tags, {
+  tags = merge(var.common_tags, {
     Name    = "${var.project_name}-frontend-cdn-${var.environment}"
     Service = "Frontend"
   })
+}
+
+resource "aws_route53_record" "frontend_a_record" {
+  zone_id = var.route53_zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.frontend.domain_name
+    zone_id                = aws_cloudfront_distribution.frontend.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "frontend_www_a_record" {
+  zone_id = var.route53_zone_id
+  name    = "www.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.frontend.domain_name
+    zone_id                = aws_cloudfront_distribution.frontend.hosted_zone_id
+    evaluate_target_health = false
+  }
 }

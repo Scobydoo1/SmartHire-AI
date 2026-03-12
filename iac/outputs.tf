@@ -1,11 +1,15 @@
+# ============================================
+# Cognito Outputs
+# ============================================
+
 output "cognito_user_pool_id" {
   description = "Cognito User Pool ID for React configuration"
-  value       = aws_cognito_user_pool.smarthire_pool.id
+  value       = module.auth.cognito_user_pool_id
 }
 
 output "cognito_client_id" {
   description = "Cognito Client ID for React configuration"
-  value       = aws_cognito_user_pool_client.smarthire_frontend_client.id
+  value       = module.auth.cognito_client_id
 }
 
 output "aws_region" {
@@ -19,32 +23,32 @@ output "aws_region" {
 
 output "ai_group_arn" {
   description = "ARN of AI Services IAM Group"
-  value       = aws_iam_group.ai_group.arn
+  value       = module.iam.ai_group_arn
 }
 
 output "ai_group_name" {
   description = "Name of AI Services IAM Group"
-  value       = aws_iam_group.ai_group.name
+  value       = module.iam.ai_group_name
 }
 
 output "frontend_group_arn" {
   description = "ARN of Frontend Services IAM Group"
-  value       = aws_iam_group.frontend_group.arn
+  value       = module.iam.frontend_group_arn
 }
 
 output "frontend_group_name" {
   description = "Name of Frontend Services IAM Group"
-  value       = aws_iam_group.frontend_group.name
+  value       = module.iam.frontend_group_name
 }
 
 output "backend_group_arn" {
   description = "ARN of Backend Services IAM Group"
-  value       = aws_iam_group.backend_group.arn
+  value       = module.iam.backend_group_arn
 }
 
 output "backend_group_name" {
   description = "Name of Backend Services IAM Group"
-  value       = aws_iam_group.backend_group.name
+  value       = module.iam.backend_group_name
 }
 
 # ============================================
@@ -53,17 +57,17 @@ output "backend_group_name" {
 
 output "frontend_s3_bucket_name" {
   description = "S3 bucket name for frontend deployment (used in CI/CD)"
-  value       = aws_s3_bucket.frontend.id
+  value       = module.frontend.frontend_s3_bucket_name
 }
 
 output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID for cache invalidation (used in CI/CD)"
-  value       = aws_cloudfront_distribution.frontend.id
+  value       = module.frontend.cloudfront_distribution_id
 }
 
 output "cloudfront_domain_name" {
   description = "CloudFront domain name (frontend URL)"
-  value       = aws_cloudfront_distribution.frontend.domain_name
+  value       = module.frontend.cloudfront_domain_name
 }
 
 # ============================================
@@ -72,27 +76,27 @@ output "cloudfront_domain_name" {
 
 output "vpc_id" {
   description = "VPC ID"
-  value       = aws_vpc.main.id
+  value       = module.networking.vpc_id
 }
 
 output "public_subnet_ids" {
   description = "Public Subnet IDs"
-  value       = aws_subnet.public[*].id
+  value       = module.networking.public_subnet_ids
 }
 
 output "private_db_subnet_ids" {
   description = "Private DB Subnet IDs"
-  value       = aws_subnet.private_db[*].id
+  value       = module.networking.private_db_subnet_ids
 }
 
 output "app_security_group_id" {
   description = "App Security Group ID (dùng cho Lambda)"
-  value       = aws_security_group.app.id
+  value       = module.networking.app_security_group_id
 }
 
 output "rds_security_group_id" {
   description = "RDS Security Group ID"
-  value       = aws_security_group.rds.id
+  value       = module.networking.rds_security_group_id
 }
 
 # ============================================
@@ -101,37 +105,37 @@ output "rds_security_group_id" {
 
 output "rds_endpoint" {
   description = "RDS endpoint address"
-  value       = aws_db_instance.main.address
+  value       = module.database.rds_endpoint
 }
 
 output "rds_port" {
   description = "RDS port"
-  value       = aws_db_instance.main.port
+  value       = module.database.rds_port
 }
 
 output "rds_database_name" {
   description = "RDS database name"
-  value       = aws_db_instance.main.db_name
+  value       = module.database.rds_database_name
 }
 
 output "rds_instance_id" {
   description = "RDS instance identifier"
-  value       = aws_db_instance.main.identifier
+  value       = module.database.rds_instance_id
 }
 
 output "rds_secret_arn" {
   description = "ARN of Secrets Manager secret chứa RDS credentials"
-  value       = aws_secretsmanager_secret.rds.arn
+  value       = module.database.rds_secret_arn
 }
 
 output "rds_secrets_kms_key_id" {
   description = "KMS Key ID dùng để encrypt RDS secrets"
-  value       = aws_kms_key.secrets.id
+  value       = module.database.rds_secrets_kms_key_id
 }
 
 output "rds_secrets_kms_key_arn" {
   description = "KMS Key ARN dùng để encrypt RDS secrets"
-  value       = aws_kms_key.secrets.arn
+  value       = module.database.rds_secrets_kms_key_arn
 }
 
 # ============================================
@@ -140,5 +144,5 @@ output "rds_secrets_kms_key_arn" {
 
 output "bastion_public_ip" {
   description = "Public IP of Bastion Host"
-  value       = aws_eip.bastion.public_ip
+  value       = module.database.bastion_public_ip
 }

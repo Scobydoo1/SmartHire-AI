@@ -1,9 +1,15 @@
-# ============================================
-# RDS PostgreSQL - Dev Environment
-# ============================================
+data "aws_ami" "amazon_linux_2023" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-x86_64"]
+  }
+}
 
 # ============================================
-# KMS Key cho encryption
+# KMS Key for encryption
 # ============================================
 
 resource "aws_kms_key" "secrets" {
@@ -11,7 +17,7 @@ resource "aws_kms_key" "secrets" {
   deletion_window_in_days = 7
   enable_key_rotation     = true
 
-  tags = merge(local.common_tags, {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-secrets-key-${var.environment}"
   })
 }
@@ -22,16 +28,16 @@ resource "aws_kms_alias" "secrets" {
 }
 
 # ============================================
-# Secrets Manager - lưu credentials RDS
+# Secrets Manager - store RDS credentials
 # ============================================
 
 resource "aws_secretsmanager_secret" "rds" {
   name                    = "${var.project_name}/rds/${var.environment}"
   description             = "RDS PostgreSQL credentials for ${var.project_name} ${var.environment}"
-  recovery_window_in_days = 0 # dev: xóa ngay lập tức, Prod nên đặt 30
+  recovery_window_in_days = 0
   kms_key_id              = aws_kms_key.secrets.id
 
-  tags = local.common_tags
+  tags = var.common_tags
 }
 
 resource "aws_secretsmanager_secret_version" "rds" {
@@ -55,9 +61,9 @@ resource "aws_secretsmanager_secret_version" "rds" {
 resource "aws_db_subnet_group" "main" {
   name        = "${var.project_name}-db-subnet-group-${var.environment}"
   description = "DB Subnet Group for ${var.project_name} ${var.environment}"
-  subnet_ids  = aws_subnet.private_db[*].id
+  subnet_ids  = var.private_db_subnet_ids
 
-  tags = merge(local.common_tags, {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-db-subnet-group-${var.environment}"
   })
 }
@@ -69,46 +75,106 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_db_instance" "main" {
   identifier = "${var.project_name}-postgres-${var.environment}"
 
-  # Engine
   engine         = "postgres"
   engine_version = "15"
 
-  # Instance
   instance_class        = var.rds_instance_class
   allocated_storage     = var.rds_allocated_storage
-  max_allocated_storage = var.rds_allocated_storage * 2 # autoscaling tối đa 2x
+  max_allocated_storage = var.rds_allocated_storage * 2
   storage_type          = "gp3"
   storage_encrypted     = true
 
-  # Database
   db_name  = "smarthiredb"
   username = var.rds_master_username
   password = var.rds_master_password
 
-  # Network
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.rds.id]
+  vpc_security_group_ids = [var.rds_security_group_id]
   publicly_accessible    = false
-  multi_az               = false # dev: Single-AZ để tiết kiệm
+  multi_az               = false
 
-  # Deletion
   deletion_protection = false
   skip_final_snapshot = true
 
-  # Backup
   backup_retention_period = 7
   backup_window           = "03:00-04:00"
   maintenance_window      = "sun:05:00-sun:06:00"
   copy_tags_to_snapshot   = true
 
-  # Auth & Upgrade
   iam_database_authentication_enabled = true
   auto_minor_version_upgrade          = true
 
-  # Monitoring
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
-  tags = merge(local.common_tags, {
+  tags = merge(var.common_tags, {
     Name = "${var.project_name}-postgres-${var.environment}"
   })
+}
+
+# ============================================
+# Bastion Host
+# ============================================
+
+resource "aws_security_group" "bastion" {
+  name        = "${var.project_name}-bastion-sg-${var.environment}"
+  description = "Security group for Bastion Host"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "SSH access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.bastion_ssh_cidr]
+  }
+
+  egress {
+    description = "Allow all outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-bastion-sg-${var.environment}"
+  })
+}
+
+resource "aws_instance" "bastion" {
+  ami           = data.aws_ami.amazon_linux_2023.id
+  instance_type = "t3.micro"
+  subnet_id     = var.public_subnet_id
+  key_name      = var.bastion_key_pair != "" ? var.bastion_key_pair : null
+
+  vpc_security_group_ids = [aws_security_group.bastion.id]
+
+  user_data = <<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y postgresql15
+  EOF
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-bastion-${var.environment}"
+  })
+}
+
+resource "aws_eip" "bastion" {
+  instance = aws_instance.bastion.id
+  domain   = "vpc"
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-bastion-eip-${var.environment}"
+  })
+}
+
+resource "aws_security_group_rule" "rds_ingress_bastion" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.bastion.id
+  security_group_id        = var.rds_security_group_id
+  description              = "PostgreSQL from Bastion Security Group"
 }

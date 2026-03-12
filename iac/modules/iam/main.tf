@@ -1,50 +1,41 @@
+data "aws_caller_identity" "current" {}
+
 # ============================================
 # IAM Groups for different service layers
 # ============================================
 
-# AI Services Group (SageMaker, Bedrock, Lambda)
 resource "aws_iam_group" "ai_group" {
-  name = local.iam_groups.ai_group
+  name = "${var.project_name}-ai-group-${var.environment}"
   path = "/services/"
 }
 
-# Frontend Services Group (CloudFront, S3, Cognito)
 resource "aws_iam_group" "frontend_group" {
-  name = local.iam_groups.frontend_group
+  name = "${var.project_name}-frontend-group-${var.environment}"
   path = "/services/"
 }
 
-# Backend Services Group (Lambda, RDS, API Gateway, DynamoDB)
 resource "aws_iam_group" "backend_group" {
-  name = local.iam_groups.backend_group
+  name = "${var.project_name}-backend-group-${var.environment}"
   path = "/services/"
 }
-
-# ============================================
-# IAM Policies for AI Group
-# ============================================
 
 resource "aws_iam_group_policy" "ai_policy" {
-  name  = "${local.iam_groups.ai_group}-policy"
+  name  = "${var.project_name}-ai-group-${var.environment}-policy"
   group = aws_iam_group.ai_group.name
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "SageMakerAccess"
-        Effect = "Allow"
-        Action = [
-          "sagemaker:*"
-        ]
+        Sid      = "SageMakerAccess"
+        Effect   = "Allow"
+        Action   = ["sagemaker:*"]
         Resource = "*"
       },
       {
-        Sid    = "BedrockAccess"
-        Effect = "Allow"
-        Action = [
-          "bedrock:*"
-        ]
+        Sid      = "BedrockAccess"
+        Effect   = "Allow"
+        Action   = ["bedrock:*"]
         Resource = "*"
       },
       {
@@ -72,27 +63,21 @@ resource "aws_iam_group_policy" "ai_policy" {
         ]
       },
       {
-        Sid    = "TranscribeAccess"
-        Effect = "Allow"
-        Action = [
-          "transcribe:*"
-        ]
+        Sid      = "TranscribeAccess"
+        Effect   = "Allow"
+        Action   = ["transcribe:*"]
         Resource = "*"
       },
       {
-        Sid    = "PollyAccess"
-        Effect = "Allow"
-        Action = [
-          "polly:*"
-        ]
+        Sid      = "PollyAccess"
+        Effect   = "Allow"
+        Action   = ["polly:*"]
         Resource = "*"
       },
       {
-        Sid    = "RekognitionAccess"
-        Effect = "Allow"
-        Action = [
-          "rekognition:*"
-        ]
+        Sid      = "RekognitionAccess"
+        Effect   = "Allow"
+        Action   = ["rekognition:*"]
         Resource = "*"
       },
       {
@@ -146,11 +131,9 @@ resource "aws_iam_group_policy" "ai_policy" {
         Resource = "*"
       },
       {
-        Sid    = "IAMFullAccess"
-        Effect = "Allow"
-        Action = [
-          "iam:*"
-        ]
+        Sid      = "IAMFullAccess"
+        Effect   = "Allow"
+        Action   = ["iam:*"]
         Resource = "*"
       },
       {
@@ -205,31 +188,23 @@ resource "aws_iam_group_policy" "ai_policy" {
   })
 }
 
-# ============================================
-# IAM Policies for Frontend Group
-# ============================================
-
 resource "aws_iam_group_policy" "frontend_policy" {
-  name  = "${local.iam_groups.frontend_group}-policy"
+  name  = "${var.project_name}-frontend-group-${var.environment}-policy"
   group = aws_iam_group.frontend_group.name
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "S3FrontendDeployment"
-        Effect = "Allow"
-        Action = [
-          "s3:*"
-        ]
+        Sid      = "S3FrontendDeployment"
+        Effect   = "Allow"
+        Action   = ["s3:*"]
         Resource = "*"
       },
       {
-        Sid    = "CloudFrontInvalidation"
-        Effect = "Allow"
-        Action = [
-          "cloudfront:*"
-        ]
+        Sid      = "CloudFrontInvalidation"
+        Effect   = "Allow"
+        Action   = ["cloudfront:*"]
         Resource = "*"
       },
       {
@@ -243,50 +218,38 @@ resource "aws_iam_group_policy" "frontend_policy" {
         Resource = "*"
       },
       {
-        Sid    = "APIGatewayAccess"
-        Effect = "Allow"
-        Action = [
-          "apigateway:GET"
-        ]
+        Sid      = "APIGatewayAccess"
+        Effect   = "Allow"
+        Action   = ["apigateway:GET"]
         Resource = "arn:aws:apigateway:${var.aws_region}::*"
       }
     ]
   })
 }
 
-# ============================================
-# IAM Policies for Backend Group
-# ============================================
-
 resource "aws_iam_group_policy" "backend_policy" {
-  name  = "${local.iam_groups.backend_group}-policy"
+  name  = "${var.project_name}-backend-group-${var.environment}-policy"
   group = aws_iam_group.backend_group.name
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "LambdaManagement"
-        Effect = "Allow"
-        Action = [
-          "lambda:*"
-        ]
+        Sid      = "LambdaManagement"
+        Effect   = "Allow"
+        Action   = ["lambda:*"]
         Resource = "*"
       },
       {
-        Sid    = "APIGatewayManagement"
-        Effect = "Allow"
-        Action = [
-          "apigateway:*"
-        ]
+        Sid      = "APIGatewayManagement"
+        Effect   = "Allow"
+        Action   = ["apigateway:*"]
         Resource = "arn:aws:apigateway:${var.aws_region}::*"
       },
       {
-        Sid    = "RDSAccess"
-        Effect = "Allow"
-        Action = [
-          "rds:*"
-        ]
+        Sid      = "RDSAccess"
+        Effect   = "Allow"
+        Action   = ["rds:*"]
         Resource = "*"
       },
       {
@@ -316,11 +279,9 @@ resource "aws_iam_group_policy" "backend_policy" {
         Resource = "arn:aws:secretsmanager:${var.aws_region}:*:secret:${var.project_name}/*"
       },
       {
-        Sid    = "SQSAccess"
-        Effect = "Allow"
-        Action = [
-          "sqs:*"
-        ]
+        Sid      = "SQSAccess"
+        Effect   = "Allow"
+        Action   = ["sqs:*"]
         Resource = "*"
       },
       {
@@ -336,27 +297,21 @@ resource "aws_iam_group_policy" "backend_policy" {
         Resource = "*"
       },
       {
-        Sid    = "SNSAccess"
-        Effect = "Allow"
-        Action = [
-          "sns:*"
-        ]
+        Sid      = "SNSAccess"
+        Effect   = "Allow"
+        Action   = ["sns:*"]
         Resource = "*"
       },
       {
-        Sid    = "EventBridgeAccess"
-        Effect = "Allow"
-        Action = [
-          "events:*"
-        ]
+        Sid      = "EventBridgeAccess"
+        Effect   = "Allow"
+        Action   = ["events:*"]
         Resource = "*"
       },
       {
-        Sid    = "StepFunctionsAccess"
-        Effect = "Allow"
-        Action = [
-          "states:*"
-        ]
+        Sid      = "StepFunctionsAccess"
+        Effect   = "Allow"
+        Action   = ["states:*"]
         Resource = "*"
       },
       {
@@ -371,19 +326,15 @@ resource "aws_iam_group_policy" "backend_policy" {
         Resource = "*"
       },
       {
-        Sid    = "CloudFormationAccess"
-        Effect = "Allow"
-        Action = [
-          "cloudformation:*"
-        ]
+        Sid      = "CloudFormationAccess"
+        Effect   = "Allow"
+        Action   = ["cloudformation:*"]
         Resource = "*"
       },
       {
-        Sid    = "SESAccess"
-        Effect = "Allow"
-        Action = [
-          "ses:*"
-        ]
+        Sid      = "SESAccess"
+        Effect   = "Allow"
+        Action   = ["ses:*"]
         Resource = "*"
       },
       {
@@ -397,28 +348,22 @@ resource "aws_iam_group_policy" "backend_policy" {
         Resource = "*"
       },
       {
-        Sid    = "CloudWatchLogs"
-        Effect = "Allow"
-        Action = [
-          "logs:*"
-        ]
+        Sid      = "CloudWatchLogs"
+        Effect   = "Allow"
+        Action   = ["logs:*"]
         Resource = "*"
       },
       {
-        Sid    = "CloudWatchMetrics"
-        Effect = "Allow"
-        Action = [
-          "cloudwatch:*"
-        ]
+        Sid      = "CloudWatchMetrics"
+        Effect   = "Allow"
+        Action   = ["cloudwatch:*"]
         Resource = "*"
       },
       {
-        Sid    = "CognitoFullAccess"
-        Effect = "Allow"
-        Action = [
-          "cognito-idp:*"
-        ]
-        Resource = aws_cognito_user_pool.smarthire_pool.arn
+        Sid      = "CognitoFullAccess"
+        Effect   = "Allow"
+        Action   = ["cognito-idp:*"]
+        Resource = var.cognito_user_pool_arn
       },
       {
         Sid    = "CognitoDescribeAccess"
@@ -431,19 +376,15 @@ resource "aws_iam_group_policy" "backend_policy" {
         Resource = "*"
       },
       {
-        Sid    = "EC2FullAccess"
-        Effect = "Allow"
-        Action = [
-          "ec2:*"
-        ]
+        Sid      = "EC2FullAccess"
+        Effect   = "Allow"
+        Action   = ["ec2:*"]
         Resource = "*"
       },
       {
-        Sid    = "EC2SerialConsoleAccess"
-        Effect = "Allow"
-        Action = [
-          "ec2-instance-connect:SendSerialConsoleSSHPublicKey"
-        ]
+        Sid      = "EC2SerialConsoleAccess"
+        Effect   = "Allow"
+        Action   = ["ec2-instance-connect:SendSerialConsoleSSHPublicKey"]
         Resource = "*"
       },
       {
@@ -474,4 +415,81 @@ resource "aws_iam_group_policy" "backend_policy" {
       }
     ]
   })
+}
+
+# ============================================
+# GitHub OIDC for CI/CD Deployment
+# ============================================
+
+resource "aws_iam_openid_connect_provider" "github" {
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1", "1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
+}
+
+resource "aws_iam_role" "github_actions_frontend" {
+  name = "${var.project_name}-github-actions-frontend-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:*"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = var.common_tags
+}
+
+resource "aws_iam_policy" "frontend_deploy_policy" {
+  name        = "${var.project_name}-frontend-deploy-policy-${var.environment}"
+  description = "Policy allowing GitHub Actions to deploy to S3 and invalidate CloudFront caches"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "S3UploadAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.frontend_s3_bucket_name}",
+          "arn:aws:s3:::${var.frontend_s3_bucket_name}/*"
+        ]
+      },
+      {
+        Sid    = "CloudFrontInvalidationAccess"
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateInvalidation",
+          "cloudfront:GetInvalidation",
+          "cloudfront:ListInvalidations"
+        ]
+        Resource = "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/${var.cloudfront_distribution_id}"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_deploy_attach" {
+  role       = aws_iam_role.github_actions_frontend.name
+  policy_arn = aws_iam_policy.frontend_deploy_policy.arn
 }

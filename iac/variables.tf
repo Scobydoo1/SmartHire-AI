@@ -93,3 +93,15 @@ variable "existing_waf_arn" {
   type        = string
   default     = "arn:aws:wafv2:us-east-1:116527261062:global/webacl/CreatedByCloudFront-4cfcba52/dda62f68-4276-4085-b027-938ce627350b"
 }
+
+variable "domain_name" {
+  type        = string
+  description = "The primary domain name for the frontend (e.g., example.com)"
+  default     = "smarthire-ai.org"
+}
+
+variable "github_repo" {
+  type        = string
+  description = "The GitHub repository in format 'user/repo' allowed to assume the role"
+  default     = "YOUR_GITHUB_ORG/YOUR_GITHUB_REPO"
+}
