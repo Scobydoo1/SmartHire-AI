@@ -4,14 +4,25 @@ const SESSION_KEY = 'smarthire_media_granted'
 
 // Định nghĩa ngoài component — không tạo lại mỗi render
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
-  width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user',
+  width: { ideal: 1280 },
+  height: { ideal: 720 },
+  facingMode: 'user',
 }
 const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
-  echoCancellation: true, noiseSuppression: true, sampleRate: 44100,
+  echoCancellation: true,
+  noiseSuppression: true,
+  sampleRate: 44100,
 }
 
 function stopVideoTracks(stream: MediaStream) {
-  stream.getVideoTracks().forEach((t) => { t.onended = null; try { t.stop() } catch {} })
+  stream.getVideoTracks().forEach((t) => {
+    t.onended = null
+    try {
+      t.stop()
+    } catch {
+      /* ignore */
+    }
+  })
 }
 
 export interface UseMediaDevicesReturn {
@@ -27,19 +38,21 @@ export interface UseMediaDevicesReturn {
 }
 
 export function useMediaDevices(): UseMediaDevicesReturn {
-  const [stream, setStream]              = useState<MediaStream | null>(null)
-  const [isMicMuted, setIsMicMuted]      = useState(false)
-  const [isCameraOff, setIsCameraOff]    = useState(false)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [isMicMuted, setIsMicMuted] = useState(false)
+  const [isCameraOff, setIsCameraOff] = useState(false)
   const [permissionsGranted, setGranted] = useState(false)
-  const [error, setError]                = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const streamRef        = useRef<MediaStream | null>(null)
-  const isRestartingRef  = useRef(false)
-  const isCameraOffRef   = useRef(false)
+  const streamRef = useRef<MediaStream | null>(null)
+  const isRestartingRef = useRef(false)
+  const isCameraOffRef = useRef(false)
   // Lưu onended handler 1 lần — tái sử dụng cho mọi track mới
-  const onEndedRef       = useRef<(() => void) | null>(null)
+  const onEndedRef = useRef<(() => void) | null>(null)
 
-  useEffect(() => { isCameraOffRef.current = isCameraOff }, [isCameraOff])
+  useEffect(() => {
+    isCameraOffRef.current = isCameraOff
+  }, [isCameraOff])
 
   // ── coreRestart: deps rỗng, chỉ đọc refs ─────────────────────────────────
   const coreRestart = useCallback(async () => {
@@ -51,7 +64,10 @@ export function useMediaDevices(): UseMediaDevicesReturn {
       const ns = await navigator.mediaDevices.getUserMedia({ video: VIDEO_CONSTRAINTS })
       const nt = ns.getVideoTracks()[0]
 
-      if (!streamRef.current) { nt.stop(); return }
+      if (!streamRef.current) {
+        nt.stop()
+        return
+      }
 
       if (onEndedRef.current) nt.onended = onEndedRef.current
 
@@ -115,7 +131,7 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     startStream()
       .then(() => setGranted(true))
       .catch(() => sessionStorage.removeItem(SESSION_KEY))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── Lớp 1: devicechange ───────────────────────────────────────────────────
@@ -153,7 +169,9 @@ export function useMediaDevices(): UseMediaDevicesReturn {
 
   // ── toggleMic ─────────────────────────────────────────────────────────────
   const toggleMic = useCallback(() => {
-    streamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !t.enabled })
+    streamRef.current?.getAudioTracks().forEach((t) => {
+      t.enabled = !t.enabled
+    })
     setIsMicMuted((p) => !p)
   }, [])
 
@@ -162,10 +180,10 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     const vt = streamRef.current?.getVideoTracks()[0]
     if (isCameraOffRef.current) {
       if (!vt || vt.readyState === 'ended') {
-        await coreRestart()          // track bị OS kill → restart
+        await coreRestart() // track bị OS kill → restart
       } else {
         vt.enabled = true
-        setIsCameraOff(false)        // track còn sống → chỉ re-enable
+        setIsCameraOff(false) // track còn sống → chỉ re-enable
       }
     } else {
       if (vt) vt.enabled = false
@@ -175,7 +193,14 @@ export function useMediaDevices(): UseMediaDevicesReturn {
 
   // ── stopAll ────────────────────────────────────────────────────────────────
   const stopAll = useCallback(() => {
-    streamRef.current?.getTracks().forEach((t) => { t.onended = null; try { t.stop() } catch {} })
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null
+      try {
+        t.stop()
+      } catch {
+        /* ignore */
+      }
+    })
     streamRef.current = null
     setStream(null)
     setGranted(false)
@@ -186,10 +211,29 @@ export function useMediaDevices(): UseMediaDevicesReturn {
   }, [])
 
   // Cleanup unmount
-  useEffect(() => () => {
-    streamRef.current?.getTracks().forEach((t) => { t.onended = null; try { t.stop() } catch {} })
-  }, [])
+  useEffect(
+    () => () => {
+      streamRef.current?.getTracks().forEach((t) => {
+        t.onended = null
+        try {
+          t.stop()
+        } catch {
+          /* ignore */
+        }
+      })
+    },
+    [],
+  )
 
-  return { stream, isMicMuted, isCameraOff, permissionsGranted, error,
-           requestPermissions, toggleMic, toggleCamera, stopAll }
+  return {
+    stream,
+    isMicMuted,
+    isCameraOff,
+    permissionsGranted,
+    error,
+    requestPermissions,
+    toggleMic,
+    toggleCamera,
+    stopAll,
+  }
 }

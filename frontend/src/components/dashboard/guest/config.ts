@@ -18,22 +18,19 @@ export const FEATURE_ITEMS: FeatureItem[] = [
     id: 'live-ai',
     icon: Video,
     title: 'Live AI Presence',
-    description:
-      'Interact naturally via voice and video with our responsive AI interviewer.',
+    description: 'Interact naturally via voice and video with our responsive AI interviewer.',
   },
   {
     id: 'flexible-timing',
     icon: Clock,
     title: 'Flexible Timing',
-    description:
-      'Take the interview on your own schedule. No timezone coordination needed.',
+    description: 'Take the interview on your own schedule. No timezone coordination needed.',
   },
   {
     id: 'unbiased',
     icon: ShieldCheck,
     title: 'Unbiased Evaluation',
-    description:
-      'Standardized, objective scoring based entirely on your skills and responses.',
+    description: 'Standardized, objective scoring based entirely on your skills and responses.',
   },
 ]
 

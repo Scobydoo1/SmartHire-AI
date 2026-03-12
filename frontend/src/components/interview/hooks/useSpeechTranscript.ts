@@ -13,25 +13,26 @@ interface UseSpeechTranscriptReturn {
 
 /** Check browser support once */
 const getSR = (): (new () => SpeechRecognition) | null =>
-  (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null
+  window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null
 
-export function useSpeechTranscript(
-  stream: MediaStream | null,
-): UseSpeechTranscriptReturn {
-  const [transcript, setTranscript] = useState<TranscriptMessage[]>([{
-    id: '1', sender: 'ai',
-    text: "Hello! I'm your SmartHire AI interviewer. Let's start with a coding problem.",
-  }])
+export function useSpeechTranscript(stream: MediaStream | null): UseSpeechTranscriptReturn {
+  const [transcript, setTranscript] = useState<TranscriptMessage[]>([
+    {
+      id: '1',
+      sender: 'ai',
+      text: "Hello! I'm your SmartHire AI interviewer. Let's start with a coding problem.",
+    },
+  ])
   const [isListening, setIsListening] = useState(false)
 
-  const recogRef  = useRef<SpeechRecognition | null>(null)
+  const recogRef = useRef<SpeechRecognition | null>(null)
   const activeRef = useRef(false)
 
   const addMessage = useCallback((sender: 'user' | 'ai', text: string) => {
     setTranscript((p) => [...p, { id: uid(), sender, text }])
   }, [])
 
-  const addAIMessage    = useCallback((text: string) => addMessage('ai', text), [addMessage])
+  const addAIMessage = useCallback((text: string) => addMessage('ai', text), [addMessage])
   const clearTranscript = useCallback(() => setTranscript([]), [])
 
   const stop = useCallback(() => {
@@ -54,9 +55,9 @@ export function useSpeechTranscript(
     if (activeRef.current) return
 
     const r = new SR()
-    r.continuous     = true
+    r.continuous = true
     r.interimResults = true
-    r.lang           = 'en-US'  // ✅ English
+    r.lang = 'en-US' // ✅ English
 
     r.onstart = () => {
       console.info('[Speech] Started listening (en-US)')
@@ -71,8 +72,8 @@ export function useSpeechTranscript(
       }
     }
 
-    r.onerror = (event: Event) => {
-      const error = (event as any).error as string
+    r.onerror = (event: SpeechRecognitionErrorEvent) => {
+      const error = event.error
       console.warn('[Speech] error:', error)
       if (error === 'not-allowed' || error === 'service-not-allowed') {
         stop()
@@ -84,13 +85,17 @@ export function useSpeechTranscript(
     r.onend = () => {
       console.info('[Speech] onend — activeRef:', activeRef.current)
       if (activeRef.current) {
-        try { r.start() } catch (e) { console.warn('[Speech] restart failed:', e) }
+        try {
+          r.start()
+        } catch (e) {
+          console.warn('[Speech] restart failed:', e)
+        }
       } else {
         setIsListening(false)
       }
     }
 
-    recogRef.current  = r
+    recogRef.current = r
     activeRef.current = true
     try {
       r.start()

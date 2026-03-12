@@ -76,7 +76,7 @@ export const GuestHeroText = memo(function GuestHeroText() {
         */}
         <span className="inline-block overflow-hidden pb-1 leading-none">
           <motion.span
-            className="inline-block animate-gradient-x bg-linear-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-size-[200%_auto] bg-clip-text text-transparent"
+            className="animate-gradient-x inline-block bg-linear-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-size-[200%_auto] bg-clip-text text-transparent"
             initial={{ y: '110%', opacity: 0 }}
             animate={{ y: '0%', opacity: 1 }}
             transition={{
@@ -98,8 +98,8 @@ export const GuestHeroText = memo(function GuestHeroText() {
         custom={HEADLINE_DELAY + (HEADLINE_WORDS.length + 1) * WORD_STAGGER + 0.2}
         className="mx-auto mb-8 max-w-xl text-lg leading-relaxed text-zinc-600 lg:mx-0 dark:text-zinc-400"
       >
-        Experience a fair, unbiased, and interactive technical evaluation driven by
-        next-generation AI. Zero bias. Maximum signal.
+        Experience a fair, unbiased, and interactive technical evaluation driven by next-generation
+        AI. Zero bias. Maximum signal.
       </motion.p>
     </div>
   )

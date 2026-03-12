@@ -26,14 +26,14 @@ import { useSpeechTranscript } from './hooks/useSpeechTranscript'
 import { useSessionRecorder } from './hooks/useSessionRecorder'
 import type { InterviewWorkspaceProps } from './types'
 
-const LeftPanel   = lazy(() => import('./LeftPanel').then((m) => ({ default: m.LeftPanel })))
+const LeftPanel = lazy(() => import('./LeftPanel').then((m) => ({ default: m.LeftPanel })))
 const CenterPanel = lazy(() => import('./CenterPanel').then((m) => ({ default: m.CenterPanel })))
-const RightPanel  = lazy(() => import('./RightPanel').then((m) => ({ default: m.RightPanel })))
+const RightPanel = lazy(() => import('./RightPanel').then((m) => ({ default: m.RightPanel })))
 
 // sessionId từ URL param ?code=xxx
 const SESSION_ID = new URLSearchParams(window.location.search).get('code') ?? 'unknown'
 
-const PanelSkeleton = () => <div className="h-full w-full animate-pulse rounded-lg bg-muted/20" />
+const PanelSkeleton = () => <div className="bg-muted/20 h-full w-full animate-pulse rounded-lg" />
 
 export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
   skipPermissions = false,
@@ -42,12 +42,17 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
   const [showEndModal, setShowEndModal] = useState(false)
 
   const {
-    stream, isMicMuted, isCameraOff,
-    permissionsGranted, requestPermissions,
-    toggleMic, toggleCamera, stopAll,
+    stream,
+    isMicMuted,
+    isCameraOff,
+    permissionsGranted,
+    requestPermissions,
+    toggleMic,
+    toggleCamera,
+    stopAll,
   } = useMediaDevices()
 
-  const { transcript, isListening, addAIMessage } = useSpeechTranscript(stream)
+  const { transcript, isListening } = useSpeechTranscript(stream)
   const { uploadStatus, duration, startRecording, stopAndUpload } = useSessionRecorder()
 
   const isReady = skipPermissions || permissionsGranted
@@ -65,7 +70,7 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
   // ── Xử lý End Interview ────────────────────────────────────────────────
   const handleEndConfirm = useCallback(async () => {
     await stopAndUpload(SESSION_ID, transcript)
-    stopAll()  // stop webcam sau khi upload xong
+    stopAll() // stop webcam sau khi upload xong
   }, [stopAndUpload, transcript, stopAll])
 
   const handleEndCancel = useCallback(() => {
@@ -78,7 +83,10 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
   }, [uploadStatus])
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-background font-sans text-foreground" role="main">
+    <div
+      className="bg-background text-foreground h-screen w-full overflow-hidden font-sans"
+      role="main"
+    >
       {!isReady && <PermissionsModal onPermissionsGranted={handleGrant} />}
 
       <div
@@ -88,19 +96,37 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
         )}
         aria-hidden={!isReady}
       >
-        <Suspense fallback={<div className="h-full w-1/4 min-w-75"><PanelSkeleton /></div>}>
+        <Suspense
+          fallback={
+            <div className="h-full w-1/4 min-w-75">
+              <PanelSkeleton />
+            </div>
+          }
+        >
           <div className="h-full w-1/4 min-w-75">
             <LeftPanel transcript={transcript} isListening={isListening} />
           </div>
         </Suspense>
 
-        <Suspense fallback={<div className="h-full min-w-125 flex-1"><PanelSkeleton /></div>}>
+        <Suspense
+          fallback={
+            <div className="h-full min-w-125 flex-1">
+              <PanelSkeleton />
+            </div>
+          }
+        >
           <div className="h-full min-w-125 flex-1">
             <CenterPanel onEndInterview={() => setShowEndModal(true)} />
           </div>
         </Suspense>
 
-        <Suspense fallback={<div className="h-full w-1/5 min-w-70"><PanelSkeleton /></div>}>
+        <Suspense
+          fallback={
+            <div className="h-full w-1/5 min-w-70">
+              <PanelSkeleton />
+            </div>
+          }
+        >
           <div className="h-full w-1/5 min-w-70">
             <RightPanel
               mediaStream={stream}

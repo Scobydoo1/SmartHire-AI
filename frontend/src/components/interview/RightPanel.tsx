@@ -19,9 +19,7 @@ const ConnectionBadge = memo(({ connected }: { connected: boolean }) => (
         : 'border-red-500/30 bg-red-500/10 text-red-400',
     )}
   >
-    {connected
-      ? <Wifi className="h-3 w-3" />
-      : <WifiOff className="h-3 w-3 animate-pulse" />}
+    {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3 animate-pulse" />}
     {connected ? 'Connected' : 'Reconnecting…'}
   </Badge>
 ))
@@ -38,20 +36,24 @@ const CameraFeed = memo(({ stream }: { stream: MediaStream | null }) => {
     if (stream) {
       video.play().catch(() => {})
     }
-    return () => { if (video) video.srcObject = null }
+    return () => {
+      if (video) video.srcObject = null
+    }
   }, [stream])
 
   return (
-    <div className="relative aspect-video overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+    <div className="border-border bg-card relative aspect-video overflow-hidden rounded-lg border shadow-lg">
       {stream ? (
         <video
-          key={stream.id}   // ← force re-mount khi stream object đổi
+          key={stream.id} // ← force re-mount khi stream object đổi
           ref={videoRef}
-          autoPlay playsInline muted
+          autoPlay
+          playsInline
+          muted
           className="h-full w-full -scale-x-100 object-cover"
         />
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+        <div className="text-muted-foreground absolute inset-0 flex flex-col items-center justify-center gap-2">
           <VideoOff className="h-8 w-8 opacity-40" />
           <span className="text-xs">Camera Off</span>
         </div>
@@ -66,7 +68,7 @@ const MicVisualizer = memo(({ volume, isMuted }: { volume: number; isMuted: bool
   const isTalking = volume > 12 && !isMuted
 
   return (
-    <div className="flex items-end justify-center gap-[3px] h-6" aria-hidden="true">
+    <div className="flex h-6 items-end justify-center gap-[3px]" aria-hidden="true">
       {Array.from({ length: bars }).map((_, i) => {
         const threshold = (i + 1) * (100 / bars)
         const active = isTalking && volume >= threshold * 0.6
@@ -100,8 +102,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   const isTalking = micVolume > 12 && !isMicMuted
 
   return (
-    <div className="flex h-full flex-col gap-4 bg-background/50 p-4">
-
+    <div className="bg-background/50 flex h-full flex-col gap-4 p-4">
       {/* Network status */}
       <div className="flex justify-end">
         <ConnectionBadge connected={isConnected} />
@@ -111,18 +112,21 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       <CameraFeed stream={isCameraOff ? null : mediaStream} />
 
       {/* ── Mic + Camera Controls ── */}
-      <Card className="flex flex-col items-center gap-3 border-border bg-card/40 p-4">
-
+      <Card className="border-border bg-card/40 flex flex-col items-center gap-3 p-4">
         {/* Mic visualizer bars */}
         <MicVisualizer volume={micVolume} isMuted={isMicMuted} />
 
         {/* Talking indicator text */}
-        <p className={cn(
-          'text-[11px] font-medium tracking-wider uppercase transition-colors duration-200',
-          isMicMuted ? 'text-red-400'
-          : isTalking ? 'text-emerald-400 animate-pulse'
-          : 'text-muted-foreground',
-        )}>
+        <p
+          className={cn(
+            'text-[11px] font-medium tracking-wider uppercase transition-colors duration-200',
+            isMicMuted
+              ? 'text-red-400'
+              : isTalking
+                ? 'animate-pulse text-emerald-400'
+                : 'text-muted-foreground',
+          )}
+        >
           {isMicMuted ? 'Muted' : isTalking ? 'Speaking…' : 'Listening'}
         </p>
 
@@ -162,7 +166,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         </div>
 
         {/* Label */}
-        <div className="flex gap-6 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex gap-6 text-xs">
           <span className={isMicMuted ? 'text-red-400' : 'text-emerald-400'}>
             {isMicMuted ? 'Mic Off' : 'Mic On'}
           </span>
@@ -173,29 +177,42 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       </Card>
 
       {/* Emotion widget — giữ nguyên */}
-      <Card className="flex flex-col gap-4 border-border bg-card/40 p-5">
+      <Card className="border-border bg-card/40 flex flex-col gap-4 p-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground/70">Real-time Analysis</h3>
-          <span className="text-xs text-muted-foreground">Live</span>
+          <h3 className="text-foreground/70 text-sm font-semibold">Real-time Analysis</h3>
+          <span className="text-muted-foreground text-xs">Live</span>
         </div>
         <div className="flex items-end justify-between">
           <div>
-            <p className="mb-1 text-xs tracking-wider text-muted-foreground uppercase">State</p>
-            <p className={cn('text-xl font-bold transition-colors duration-500', EMOTION_COLOR[label])}>
+            <p className="text-muted-foreground mb-1 text-xs tracking-wider uppercase">State</p>
+            <p
+              className={cn(
+                'text-xl font-bold transition-colors duration-500',
+                EMOTION_COLOR[label],
+              )}
+            >
               {label}
             </p>
           </div>
           <div className="text-right">
-            <p className="mb-1 text-xs tracking-wider text-muted-foreground uppercase">Confidence</p>
-            <p className="text-2xl font-light text-foreground">{score}%</p>
+            <p className="text-muted-foreground mb-1 text-xs tracking-wider uppercase">
+              Confidence
+            </p>
+            <p className="text-foreground text-2xl font-light">{score}%</p>
           </div>
         </div>
         <div
-          className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted"
-          role="progressbar" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100}
+          className="bg-muted mt-2 h-1.5 w-full overflow-hidden rounded-full"
+          role="progressbar"
+          aria-valuenow={score}
+          aria-valuemin={0}
+          aria-valuemax={100}
         >
           <div
-            className={cn('h-full transition-all duration-1000 ease-in-out', EMOTION_BAR_COLOR[label])}
+            className={cn(
+              'h-full transition-all duration-1000 ease-in-out',
+              EMOTION_BAR_COLOR[label],
+            )}
             style={{ width: `${score}%` }}
           />
         </div>
@@ -203,7 +220,10 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
       {/* Footer */}
       <div className="mt-auto">
-        <Badge variant="outline" className="w-full justify-center border-border py-2 text-muted-foreground">
+        <Badge
+          variant="outline"
+          className="border-border text-muted-foreground w-full justify-center py-2"
+        >
           Interview in Progress
         </Badge>
       </div>

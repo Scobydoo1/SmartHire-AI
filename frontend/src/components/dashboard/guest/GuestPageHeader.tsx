@@ -21,7 +21,7 @@ export const GuestPageHeader = memo(function GuestPageHeader() {
       <Link to="/" aria-label="SmartHire AI Home" className="group flex items-center gap-3">
         <div
           aria-hidden="true"
-          className="flex h-10 w-10 select-none items-center justify-center rounded-xl bg-emerald-500 text-sm font-bold text-zinc-950 shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-transform duration-300 group-hover:scale-105"
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-sm font-bold text-zinc-950 shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-transform duration-300 select-none group-hover:scale-105"
         >
           SH
         </div>

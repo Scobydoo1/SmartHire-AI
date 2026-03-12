@@ -41,7 +41,7 @@ const AIAvatar = memo(function AIAvatar({ state }: { state: AIState }) {
     <div className="flex flex-col items-center gap-3">
       <div className="relative">
         <div
-          className="relative z-10 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted"
+          className="border-border bg-muted relative z-10 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2"
           role="img"
           aria-label={`AI interviewer is ${label}`}
         >
@@ -52,7 +52,7 @@ const AIAvatar = memo(function AIAvatar({ state }: { state: AIState }) {
         )}
       </div>
       <div className="text-center">
-        <p className="text-lg font-bold text-foreground">SmartHire AI</p>
+        <p className="text-foreground text-lg font-bold">SmartHire AI</p>
         <p
           className={cn('mt-1 text-sm font-medium tracking-wider uppercase', textClass)}
           aria-live="polite"
@@ -74,7 +74,7 @@ const MessageBubble = memo(function MessageBubble({ msg }: { msg: TranscriptMess
   return (
     <div className={cn('flex flex-col', isUser ? 'items-end' : 'items-start')}>
       <span
-        className="mb-1 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase"
+        className="text-muted-foreground mb-1 text-[10px] font-semibold tracking-wider uppercase"
         aria-hidden="true"
       >
         {isUser ? 'You' : 'AI'}
@@ -83,7 +83,7 @@ const MessageBubble = memo(function MessageBubble({ msg }: { msg: TranscriptMess
         className={cn(
           'max-w-[90%] rounded-lg px-3 py-2 text-sm',
           isUser
-            ? 'rounded-tr-sm bg-muted text-foreground/80'
+            ? 'bg-muted text-foreground/80 rounded-tr-sm'
             : 'rounded-tl-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-100',
         )}
       >
@@ -116,18 +116,18 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
 
   return (
     <div
-      className="flex h-full flex-col gap-4 border-r border-border bg-background/50 p-4"
+      className="border-border bg-background/50 flex h-full flex-col gap-4 border-r p-4"
       aria-label="AI interviewer panel"
     >
       {/* AI Presence & State */}
-      <Card className="flex h-1/3 items-center justify-center border-border bg-card/50 p-6">
+      <Card className="border-border bg-card/50 flex h-1/3 items-center justify-center p-6">
         <AIAvatar state={activeState} />
       </Card>
 
       {/* Live Transcript */}
-      <Card className="flex flex-1 flex-col overflow-hidden border-border bg-card/30">
-        <div className="border-b border-border bg-card/80 p-3">
-          <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+      <Card className="border-border bg-card/30 flex flex-1 flex-col overflow-hidden">
+        <div className="border-border bg-card/80 border-b p-3">
+          <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
             Live Transcript
           </h2>
         </div>
