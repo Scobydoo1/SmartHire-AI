@@ -35,12 +35,18 @@ export const useAuthLogin = (): UseAuthFormReturn<LoginFormData> => {
           // Fetch User Attributes from Cognito
           const attributes = await fetchUserAttributes()
 
+          // Normalize role from Cognito custom attribute
+          const rawRole = (attributes['custom:role'] ?? 'CANDIDATE').toLowerCase()
+          const userRole: User['role'] =
+            rawRole === 'recruiter' || rawRole === 'admin' || rawRole === 'candidate'
+              ? rawRole
+              : 'candidate'
+
           const loggedUser: User = {
             id: attributes.sub || '',
             email: attributes.email || values.email,
-            firstName: attributes.given_name || 'User',
-            lastName: attributes.family_name || '',
-            role: 'recruiter',
+            name: attributes.name || 'User',
+            role: userRole,
           }
 
           login(loggedUser, token)

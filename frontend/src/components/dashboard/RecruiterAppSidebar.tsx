@@ -105,18 +105,20 @@ const RecruiterAppSidebarComponent = () => {
 
   // Memoize user initials for performance
   const getUserInitials = useMemo(() => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    if (user?.name) {
+      return user.name
+        .split(' ')
+        .map((part) => part[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
     }
     return user?.email?.[0].toUpperCase() || 'U'
   }, [user])
 
   // Memoize user display name
   const userDisplayName = useMemo(() => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`
-    }
-    return user?.email || 'User'
+    return user?.name || user?.email || 'User'
   }, [user])
 
   // Memoize role label

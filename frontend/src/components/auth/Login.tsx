@@ -145,7 +145,7 @@ export const Login = memo(() => {
                     Password
                   </FormLabel>
                   <Link
-                    to="#"
+                    to="/forgot-password"
                     className="text-xs text-emerald-600 transition-colors hover:text-emerald-500 dark:text-emerald-500 dark:hover:text-emerald-400"
                     aria-label="Forgot password?"
                   >

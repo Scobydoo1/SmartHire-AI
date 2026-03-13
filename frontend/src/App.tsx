@@ -12,6 +12,7 @@ import { RecruiterDashboard } from './components/dashboard/RecruiterDashboard'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Login } from './components/auth/Login'
 import { Register } from './components/auth/Register'
+import { ForgotPassword } from './components/auth/ForgotPassword'
 import { Loader2 } from 'lucide-react'
 import { useAuthStore, type User } from './store/authStore'
 import { Toaster } from '@/components/ui/sonner'
@@ -55,6 +56,11 @@ const RootRoute: React.FC = () => {
 }
 
 // AuthInitializer synchronizes Amplify auth state with Zustand
+function normalizeRole(raw?: string): User['role'] {
+  const r = (raw ?? '').toLowerCase()
+  return r === 'recruiter' || r === 'admin' || r === 'candidate' ? r : 'candidate'
+}
+
 const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const login = useAuthStore((state) => state.login)
   const logout = useAuthStore((state) => state.logout)
@@ -67,23 +73,11 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
           const attributes = await fetchUserAttributes()
           const token = session.tokens.idToken?.toString() || ''
 
-          // Get role from Cognito custom attributes or groups
-          // Default to 'candidate' if no role is specified
-          let userRole: 'admin' | 'recruiter' | 'candidate' = 'candidate'
-
-          if (attributes['custom:role']) {
-            const role = attributes['custom:role']
-            if (role === 'admin' || role === 'recruiter' || role === 'candidate') {
-              userRole = role
-            }
-          }
-
           const loggedUser: User = {
             id: attributes.sub || '',
             email: attributes.email || '',
-            firstName: attributes.given_name || 'User',
-            lastName: attributes.family_name || '',
-            role: userRole,
+            name: attributes.name || 'User',
+            role: normalizeRole(attributes['custom:role']),
           }
           login(loggedUser, token)
         } else {
@@ -129,6 +123,7 @@ export function App() {
             {/* Public Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Root Conditional Route - Routes based on role */}
             <Route path="/" element={<RootRoute />} />

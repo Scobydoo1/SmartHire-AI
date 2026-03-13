@@ -39,6 +39,7 @@ export const useAuthRegister = (): UseAuthRegisterReturn => {
             userAttributes: {
               email: values.email,
               name: values.name,
+              'custom:role': 'CANDIDATE',
             },
           },
         })
@@ -74,6 +75,7 @@ export const useAuthRegister = (): UseAuthRegisterReturn => {
         })
 
         if (isSignUpComplete) {
+          setRegisteredEmail('')
           toast.success('Email verified successfully! You can now log in.')
           navigate('/login')
         }

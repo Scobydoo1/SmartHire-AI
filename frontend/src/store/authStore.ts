@@ -5,8 +5,7 @@ import { devtools } from 'zustand/middleware'
 export interface User {
   id: string
   email: string
-  firstName: string
-  lastName: string
+  name: string
   role: 'admin' | 'recruiter' | 'candidate'
   // Add other fields as needed
 }

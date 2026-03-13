@@ -67,8 +67,8 @@ resource "aws_cognito_user_pool_client" "smarthire_frontend_client" {
     "ALLOW_USER_PASSWORD_AUTH"
   ]
 
-  read_attributes  = ["email", "custom:role"]
-  write_attributes = ["email", "custom:role"]
+  read_attributes  = ["email", "name", "custom:role"]
+  write_attributes = ["email", "name", "custom:role"]
 
   prevent_user_existence_errors = "ENABLED"
 }
@@ -153,7 +153,7 @@ resource "aws_lambda_function" "cognito_sync" {
   role             = aws_iam_role.cognito_sync.arn
   handler          = "index.handler"
   runtime          = "nodejs20.x"
-  timeout          = 10
+  timeout          = 30
   memory_size      = 128
 
   vpc_config {

@@ -69,6 +69,14 @@ resource "aws_security_group" "app" {
   description = "Security group for application and Lambda functions"
   vpc_id      = aws_vpc.main.id
 
+  ingress {
+    description = "HTTPS from within VPC (VPC Endpoint responses)"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
+  }
+
   egress {
     description = "Allow all outbound"
     from_port   = 0
@@ -92,5 +100,47 @@ resource "aws_security_group" "rds" {
 
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-rds-sg-${var.environment}"
+  })
+}
+
+# Allow Lambda (app_sg) to reach RDS PostgreSQL
+resource "aws_security_group_rule" "rds_ingress_app" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.app.id
+  security_group_id        = aws_security_group.rds.id
+  description              = "PostgreSQL from Lambda/App Security Group"
+}
+
+# ============================================
+# VPC Endpoints — allow Lambda in private subnet
+# to reach AWS services without NAT Gateway
+# ============================================
+
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private_db[*].id
+  security_group_ids  = [aws_security_group.app.id]
+  private_dns_enabled = true
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-secretsmanager-endpoint-${var.environment}"
+  })
+}
+
+resource "aws_vpc_endpoint" "kms" {
+  vpc_id              = aws_vpc.main.id
+  service_name        = "com.amazonaws.${var.aws_region}.kms"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = aws_subnet.private_db[*].id
+  security_group_ids  = [aws_security_group.app.id]
+  private_dns_enabled = true
+
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-kms-endpoint-${var.environment}"
   })
 }
