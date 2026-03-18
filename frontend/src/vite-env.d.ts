@@ -63,7 +63,7 @@ interface SpeechRecognition extends EventTarget {
   ): void
 }
 
-declare var SpeechRecognition: {
+declare const SpeechRecognition: {
   prototype: SpeechRecognition
   new (): SpeechRecognition
 }
@@ -93,7 +93,7 @@ interface SpeechGrammar {
   weight: number
 }
 
-declare var SpeechGrammar: {
+declare const SpeechGrammar: {
   prototype: SpeechGrammar
   new (): SpeechGrammar
 }
@@ -106,7 +106,7 @@ interface SpeechGrammarList {
   [index: number]:     SpeechGrammar
 }
 
-declare var SpeechGrammarList: {
+declare const SpeechGrammarList: {
   prototype: SpeechGrammarList
   new (): SpeechGrammarList
 }

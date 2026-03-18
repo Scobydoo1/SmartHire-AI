@@ -8,10 +8,17 @@ export function useMicVolume(stream: MediaStream | null, isMuted: boolean): numb
   const rafRef              = useRef<number | null>(null)
   const lastTickRef         = useRef(0)
   const dataRef             = useRef<Uint8Array<ArrayBuffer> | null>(null)
+  const volumeResetRef      = useRef(setVolume)
 
-  // Reset volume to 0 when no stream or muted — separate effect to avoid setState in effect body
+  // Keep ref in sync so we can call setVolume without adding it as effect dep
+  useEffect(() => { volumeResetRef.current = setVolume }, [])
+
+  // Reset volume via ref — avoids setState directly in effect body
   useEffect(() => {
-    if (!stream || isMuted) setVolume(0)
+    if (!stream || isMuted) {
+      const raf = requestAnimationFrame(() => volumeResetRef.current(0))
+      return () => cancelAnimationFrame(raf)
+    }
   }, [stream, isMuted])
 
   useEffect(() => {
@@ -30,7 +37,6 @@ export function useMicVolume(stream: MediaStream | null, isMuted: boolean): numb
       if (timestamp - lastTickRef.current >= THROTTLE_MS) {
         lastTickRef.current = timestamp
         analyser.getByteFrequencyData(dataRef.current!)
-
         const data       = dataRef.current!
         const voiceStart = Math.floor(data.length * 0.02)
         const voiceEnd   = Math.floor(data.length * 0.35)

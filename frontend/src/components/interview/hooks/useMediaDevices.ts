@@ -12,7 +12,7 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
 function stopVideoTracks(stream: MediaStream) {
   stream.getVideoTracks().forEach((t) => {
     t.onended = null
-    try { t.stop() } catch (_e) { /* intentionally ignored */ }
+    try { t.stop() } catch (_ignore) { void _ignore }
   })
 }
 
@@ -47,24 +47,18 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     isRestartingRef.current = true
     try {
       stopVideoTracks(streamRef.current)
-
       const ns = await navigator.mediaDevices.getUserMedia({ video: VIDEO_CONSTRAINTS })
       const nt = ns.getVideoTracks()[0]
-
       if (!streamRef.current) { nt.stop(); return }
-
       if (onEndedRef.current) nt.onended = onEndedRef.current
-
       streamRef.current.getVideoTracks().forEach((t) => streamRef.current!.removeTrack(t))
       streamRef.current.addTrack(nt)
-
       const updated = new MediaStream([...streamRef.current.getAudioTracks(), nt])
       streamRef.current = updated
       setStream(updated)
       setIsCameraOff(false)
       setError(null)
-    } catch (_e) {
-      /* intentionally ignored */
+    } catch {
       setIsCameraOff(true)
       setError('Camera unavailable. Please re-enable your camera.')
     } finally {
@@ -167,7 +161,9 @@ export function useMediaDevices(): UseMediaDevicesReturn {
   const stopAll = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => {
       t.onended = null
-      try { t.stop() } catch (_e) { /* intentionally ignored */ }
+      try { t.stop() } catch {
+        // intentionally ignored
+      }
     })
     streamRef.current = null
     setStream(null)
@@ -181,7 +177,9 @@ export function useMediaDevices(): UseMediaDevicesReturn {
   useEffect(() => () => {
     streamRef.current?.getTracks().forEach((t) => {
       t.onended = null
-      try { t.stop() } catch (_e) { /* intentionally ignored */ }
+      try { t.stop() } catch {
+        // intentionally ignored
+      }
     })
   }, [])
 
