@@ -1,12 +1,3 @@
-/**
- * InterviewWorkspace — Full-screen interview environment
- *
- * Layout (three-column):
- *  ┌─────────────┬────────────────────────┬──────────────┐
- *  │  LeftPanel  │      CenterPanel       │  RightPanel  │
- *  └─────────────┴────────────────────────┴──────────────┘
- */
-
 import React, { useCallback, useEffect, lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -49,7 +40,6 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
     await requestPermissions()
   }, [requestPermissions])
 
-  // Start recording as soon as stream is ready
   useEffect(() => {
     if (stream && isReady) startRecording(stream)
   }, [stream, isReady, startRecording])

@@ -20,11 +20,11 @@ const fmt = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
 const STATUS_UI: Record<UploadStatus, { icon: React.ReactNode; text: string; color: string }> = {
-  idle:      { icon: <LogOut className="h-5 w-5" />,                      text: 'Ready to end session',  color: 'text-muted-foreground' },
-  recording: { icon: <LogOut className="h-5 w-5" />,                      text: 'Ready to end session',  color: 'text-muted-foreground' },
-  uploading: { icon: <Loader2 className="h-5 w-5 animate-spin" />,        text: 'Saving your session…', color: 'text-blue-400' },
-  done:      { icon: <CheckCircle2 className="h-5 w-5" />,                text: 'Session saved!',        color: 'text-emerald-400' },
-  error:     { icon: <AlertCircle className="h-5 w-5" />,                 text: 'Upload failed. Retry?', color: 'text-red-400' },
+  idle:      { icon: <LogOut className="h-5 w-5" />,                     text: 'Ready to end session',  color: 'text-muted-foreground' },
+  recording: { icon: <LogOut className="h-5 w-5" />,                     text: 'Ready to end session',  color: 'text-muted-foreground' },
+  uploading: { icon: <Loader2 className="h-5 w-5 animate-spin" />,       text: 'Saving your session…',  color: 'text-blue-400' },
+  done:      { icon: <CheckCircle2 className="h-5 w-5" />,               text: 'Session saved!',        color: 'text-emerald-400' },
+  error:     { icon: <AlertCircle className="h-5 w-5" />,                text: 'Upload failed. Retry?', color: 'text-red-400' },
 }
 
 export const EndInterviewModal = memo(function EndInterviewModal({
@@ -56,15 +56,9 @@ export const EndInterviewModal = memo(function EndInterviewModal({
           {icon}
           <div>
             <p className="text-sm font-medium">{text}</p>
-            {isUploading && (
-              <p className="text-xs text-muted-foreground mt-0.5">Video + audio → S3 → AI pipeline</p>
-            )}
-            {isDone && (
-              <p className="text-xs text-muted-foreground mt-0.5">Your recording has been submitted for analysis</p>
-            )}
-            {isError && (
-              <p className="text-xs text-muted-foreground mt-0.5">Check console for details</p>
-            )}
+            {isUploading && <p className="text-xs text-muted-foreground mt-0.5">Video + audio → S3 → AI pipeline</p>}
+            {isDone      && <p className="text-xs text-muted-foreground mt-0.5">Your recording has been submitted for analysis</p>}
+            {isError     && <p className="text-xs text-muted-foreground mt-0.5">Check console for details</p>}
           </div>
         </div>
 
@@ -76,12 +70,7 @@ export const EndInterviewModal = memo(function EndInterviewModal({
 
         <DialogFooter className="gap-2">
           {!isDone && (
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              disabled={isUploading}
-              className="flex-1 border-border"
-            >
+            <Button variant="outline" onClick={onCancel} disabled={isUploading} className="flex-1 border-border">
               Continue Interview
             </Button>
           )}
