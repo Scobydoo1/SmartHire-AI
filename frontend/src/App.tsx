@@ -5,10 +5,15 @@ import { InterviewWorkspace } from './components/interview/InterviewWorkspace'
 import { DashboardHome } from './components/dashboard/DashboardHome'
 import { JobCreation } from './components/dashboard/JobCreation'
 import { CandidateReport } from './components/dashboard/CandidateReport'
-
 import { GuestDashboard } from './components/dashboard/GuestDashboard'
 import { CandidateDashboard } from './components/dashboard/CandidateDashboard'
 import { RecruiterDashboard } from './components/dashboard/RecruiterDashboard'
+import { ScheduleInterview } from './components/dashboard/ScheduleInterview'
+import { ResultsList } from './components/dashboard/ResultsList'
+import { InterviewsList } from './components/dashboard/InterviewsList'
+import { ResumePage } from './components/dashboard/ResumePage'
+import { SettingsPage } from './components/dashboard/SettingsPage'
+import { ProfilePage } from './components/dashboard/ProfilePage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Login } from './components/auth/Login'
 import { Register } from './components/auth/Register'
@@ -33,22 +38,15 @@ const RootRoute: React.FC = () => {
     )
   }
 
-  // Not authenticated - show guest dashboard
-  if (!user) {
-    return <GuestDashboard />
-  }
+  if (!user) return <GuestDashboard />
 
-  // Route based on user role
   switch (user.role) {
     case 'candidate':
       return <CandidateDashboard />
-
     case 'recruiter':
       return <RecruiterDashboard />
-
     case 'admin':
       return <DashboardHome />
-
     default:
       return <GuestDashboard />
   }
@@ -67,10 +65,7 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
           const attributes = await fetchUserAttributes()
           const token = session.tokens.idToken?.toString() || ''
 
-          // Get role from Cognito custom attributes or groups
-          // Default to 'candidate' if no role is specified
           let userRole: 'admin' | 'recruiter' | 'candidate' = 'candidate'
-
           if (attributes['custom:role']) {
             const role = attributes['custom:role']
             if (role === 'admin' || role === 'recruiter' || role === 'candidate') {
@@ -95,10 +90,8 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
       }
     }
 
-    // Check session on component mount
     checkUserSession()
 
-    // Listen to Amplify Auth Hub events (login/logout from other tabs/components)
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
       switch (payload.event) {
         case 'signedIn':
@@ -130,10 +123,60 @@ export function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Root Conditional Route - Routes based on role */}
+            {/* Root — role-based redirect */}
             <Route path="/" element={<RootRoute />} />
 
-            {/* Recruiter/Admin Dashboard Routes (Protected) */}
+            {/* Candidate Routes (Protected) */}
+            <Route
+              path="/schedule"
+              element={
+                <ProtectedRoute allowedRoles={['candidate']}>
+                  <ScheduleInterview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/results"
+              element={
+                <ProtectedRoute allowedRoles={['candidate']}>
+                  <ResultsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/interviews"
+              element={
+                <ProtectedRoute allowedRoles={['candidate']}>
+                  <InterviewsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/resume"
+              element={
+                <ProtectedRoute allowedRoles={['candidate']}>
+                  <ResumePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute allowedRoles={['candidate', 'recruiter', 'admin']}>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute allowedRoles={['candidate', 'recruiter', 'admin']}>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Recruiter/Admin Routes (Protected) */}
             <Route
               path="/create-job"
               element={
@@ -145,15 +188,16 @@ export function App() {
             <Route
               path="/report/:id"
               element={
-                <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
+                <ProtectedRoute allowedRoles={['recruiter', 'admin', 'candidate']}>
                   <CandidateReport />
                 </ProtectedRoute>
               }
             />
 
-            {/* Candidate Interview Route (Public & Isolated Layout) */}
+            {/* Interview (Public & Isolated) */}
             <Route path="/interview" element={<InterviewWorkspace />} />
 
+            {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
