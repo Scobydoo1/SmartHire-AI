@@ -6,11 +6,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { LogOut, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-<<<<<<< Updated upstream
-import type { UploadStatus } from './types'  // ✅ fixed: was './hooks/useSessionRecorder'
-=======
-import type { UploadStatus } from './hooks/useSessionRecorder.ts'
->>>>>>> Stashed changes
+import type { UploadStatus } from './types'
 
 interface Props {
   open: boolean
@@ -24,11 +20,11 @@ const fmt = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 
 const STATUS_UI: Record<UploadStatus, { icon: React.ReactNode; text: string; color: string }> = {
-  idle:      { icon: <LogOut className="h-5 w-5" />,                        text: 'Ready to end session',   color: 'text-muted-foreground' },
-  recording: { icon: <LogOut className="h-5 w-5" />,                        text: 'Ready to end session',   color: 'text-muted-foreground' },
-  uploading: { icon: <Loader2 className="h-5 w-5 animate-spin" />,          text: 'Saving your session…',  color: 'text-blue-400' },
-  done:      { icon: <CheckCircle2 className="h-5 w-5" />,                  text: 'Session saved!',          color: 'text-emerald-400' },
-  error:     { icon: <AlertCircle className="h-5 w-5" />,                   text: 'Upload failed. Retry?',  color: 'text-red-400' },
+  idle:      { icon: <LogOut className="h-5 w-5" />,                      text: 'Ready to end session',  color: 'text-muted-foreground' },
+  recording: { icon: <LogOut className="h-5 w-5" />,                      text: 'Ready to end session',  color: 'text-muted-foreground' },
+  uploading: { icon: <Loader2 className="h-5 w-5 animate-spin" />,        text: 'Saving your session…', color: 'text-blue-400' },
+  done:      { icon: <CheckCircle2 className="h-5 w-5" />,                text: 'Session saved!',        color: 'text-emerald-400' },
+  error:     { icon: <AlertCircle className="h-5 w-5" />,                 text: 'Upload failed. Retry?', color: 'text-red-400' },
 }
 
 export const EndInterviewModal = memo(function EndInterviewModal({
@@ -56,7 +52,6 @@ export const EndInterviewModal = memo(function EndInterviewModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Upload status */}
         <div className={cn('flex items-center gap-3 rounded-lg border border-border bg-card/50 p-4', color)}>
           {icon}
           <div>
@@ -80,7 +75,6 @@ export const EndInterviewModal = memo(function EndInterviewModal({
         )}
 
         <DialogFooter className="gap-2">
-          {/* Cancel / Continue button — hidden only when done */}
           {!isDone && (
             <Button
               variant="outline"
@@ -91,10 +85,8 @@ export const EndInterviewModal = memo(function EndInterviewModal({
               Continue Interview
             </Button>
           )}
-
-          {/* Primary action button */}
           <Button
-            onClick={isDone ? onCancel : onConfirm}  // error state → onConfirm = retry
+            onClick={isDone ? onCancel : onConfirm}
             disabled={isUploading}
             className={cn(
               'flex-1 font-medium',

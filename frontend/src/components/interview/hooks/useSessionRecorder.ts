@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { fetchAuthSession } from 'aws-amplify/auth'
 import type { UploadStatus } from '../types'
 
 interface UseSessionRecorderReturn {
@@ -13,7 +14,6 @@ const MIME = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video
 
 const EXT = MIME.includes('mp4') ? 'mp4' : 'webm'
 
-/** Download a blob as a file to the user's machine */
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a   = document.createElement('a')
@@ -21,6 +21,15 @@ function downloadBlob(blob: Blob, filename: string) {
   a.download = filename
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
+async function getAuthToken(): Promise<string> {
+  try {
+    const session = await fetchAuthSession()
+    return session.tokens?.idToken?.toString() ?? ''
+  } catch {
+    return ''
+  }
 }
 
 export function useSessionRecorder(): UseSessionRecorderReturn {
@@ -73,32 +82,41 @@ export function useSessionRecorder(): UseSessionRecorderReturn {
       const blob          = new Blob(chunksRef.current, { type: MIME })
       chunksRef.current   = []
       const finalDuration = Math.floor((Date.now() - startRef.current) / 1000)
-
-      const apiBase = import.meta.env.VITE_API_GATEWAY_URL
+      const apiBase       = import.meta.env.VITE_API_GATEWAY_URL
 
       if (apiBase) {
-        // ── Production: real S3 upload ──────────────────────────────────
+        const token = await getAuthToken()
+        const authHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        }
+
+        // Step 1: get presigned S3 URL
         const { uploadUrl, s3Key } = await fetch(
           `${apiBase}/sessions/${sessionId}/upload-url`,
           {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body:    JSON.stringify({ filename: `${sessionId}.${EXT}`, mimeType: MIME, sizeBytes: blob.size }),
           },
-        ).then((r) => { if (!r.ok) throw new Error('presign failed'); return r.json() })
+        ).then((r) => { if (!r.ok) throw new Error(`presign failed: ${r.status}`); return r.json() })
 
-        const up = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': MIME }, body: blob })
-        if (!up.ok) throw new Error('s3 upload failed')
+        // Step 2: upload video directly to S3
+        const s3Res = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': MIME }, body: blob })
+        if (!s3Res.ok) throw new Error(`S3 upload failed: ${s3Res.status}`)
 
+        // Step 3: notify backend with transcript
         await fetch(`${apiBase}/sessions/${sessionId}/end`, {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           body:    JSON.stringify({ s3Key, durationSeconds: finalDuration, transcript }),
-        })
+        }).then((r) => { if (!r.ok) throw new Error(`session end failed: ${r.status}`) })
+
+        console.info('[SessionRecorder] Upload complete:', s3Key)
       } else {
-        // ── Dev/Demo: no backend → download file locally ────────────────
-        console.info('[SessionRecorder] No VITE_API_GATEWAY_URL — saving recording locally.')
-        await new Promise((res) => setTimeout(res, 800)) // simulate upload delay
+        // Dev fallback: download locally
+        console.info('[SessionRecorder] No VITE_API_GATEWAY_URL — saving locally.')
+        await new Promise((res) => setTimeout(res, 800))
         downloadBlob(blob, `smarthire-session-${sessionId}.${EXT}`)
       }
 

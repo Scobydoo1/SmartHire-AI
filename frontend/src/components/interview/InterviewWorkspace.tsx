@@ -1,21 +1,14 @@
 /**
- * InterviewWorkspace
- *
- * Full-screen interview environment for candidates.
+ * InterviewWorkspace — Full-screen interview environment
  *
  * Layout (three-column):
  *  ┌─────────────┬────────────────────────┬──────────────┐
  *  │  LeftPanel  │      CenterPanel       │  RightPanel  │
- *  │  25 % min   │  flex-1 (remaining)    │  20 % min    │
- *  │  300 px     │  500 px min-width      │  280 px      │
  *  └─────────────┴────────────────────────┴──────────────┘
- *
- * Props (`InterviewWorkspaceProps`):
- *  - `skipPermissions` – skip the modal gate (useful in E2E tests)
- *  - `onSessionEnd`    – called when the session ends (reserved for future use)
  */
 
-import React, { useCallback, lazy, Suspense, useState } from 'react'
+import React, { useCallback, useEffect, lazy, Suspense, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/components/theme'
@@ -23,14 +16,13 @@ import { PermissionsModal } from './PermissionsModal'
 import { EndInterviewModal } from './EndInterviewModal'
 import { useMediaDevices } from './hooks/useMediaDevices'
 import { useSpeechTranscript } from './hooks/useSpeechTranscript'
-import { useSessionRecorder } from './hooks/useSessionRecorder.ts'
+import { useSessionRecorder } from './hooks/useSessionRecorder'
 import type { InterviewWorkspaceProps } from './types'
 
 const LeftPanel   = lazy(() => import('./LeftPanel').then((m) => ({ default: m.LeftPanel })))
 const CenterPanel = lazy(() => import('./CenterPanel').then((m) => ({ default: m.CenterPanel })))
 const RightPanel  = lazy(() => import('./RightPanel').then((m) => ({ default: m.RightPanel })))
 
-// sessionId từ URL param ?code=xxx
 const SESSION_ID = new URLSearchParams(window.location.search).get('code') ?? 'unknown'
 
 const PanelSkeleton = () => <div className="h-full w-full animate-pulse rounded-lg bg-muted/20" />
@@ -39,6 +31,7 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
   skipPermissions = false,
 }) => {
   const { resolvedTheme } = useTheme()
+  const navigate = useNavigate()
   const [showEndModal, setShowEndModal] = useState(false)
 
   const {
@@ -47,35 +40,36 @@ export const InterviewWorkspace: React.FC<InterviewWorkspaceProps> = ({
     toggleMic, toggleCamera, stopAll,
   } = useMediaDevices()
 
-  const { transcript, isListening, addAIMessage } = useSpeechTranscript(stream)
+  const { transcript, isListening } = useSpeechTranscript(stream)
   const { uploadStatus, duration, startRecording, stopAndUpload } = useSessionRecorder()
 
   const isReady = skipPermissions || permissionsGranted
 
-  // Start recording ngay khi stream sẵn sàng
   const handleGrant = useCallback(async () => {
     await requestPermissions()
   }, [requestPermissions])
 
-  // Stream sẵn → start recording
-  React.useEffect(() => {
+  // Start recording as soon as stream is ready
+  useEffect(() => {
     if (stream && isReady) startRecording(stream)
   }, [stream, isReady, startRecording])
 
-  // ── Xử lý End Interview ────────────────────────────────────────────────
+  // Auto-redirect to dashboard 2s after upload completes
+  useEffect(() => {
+    if (uploadStatus === 'done') {
+      stopAll()
+      const timer = setTimeout(() => navigate('/'), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [uploadStatus, stopAll, navigate])
+
   const handleEndConfirm = useCallback(async () => {
     await stopAndUpload(SESSION_ID, transcript)
-    stopAll()  // stop webcam sau khi upload xong
-  }, [stopAndUpload, transcript, stopAll])
+  }, [stopAndUpload, transcript])
 
   const handleEndCancel = useCallback(() => {
-    if (uploadStatus === 'done') {
-      // Redirect về trang chủ sau khi upload xong
-      window.location.href = '/'
-    } else {
-      setShowEndModal(false)
-    }
-  }, [uploadStatus])
+    setShowEndModal(false)
+  }, [])
 
   return (
     <div className="h-screen w-full overflow-hidden bg-background font-sans text-foreground" role="main">
