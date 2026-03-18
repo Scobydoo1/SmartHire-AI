@@ -6,7 +6,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { LogOut, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+<<<<<<< Updated upstream
 import type { UploadStatus } from './types'  // ✅ fixed: was './hooks/useSessionRecorder'
+=======
+import type { UploadStatus } from './hooks/useSessionRecorder.ts'
+>>>>>>> Stashed changes
 
 interface Props {
   open: boolean

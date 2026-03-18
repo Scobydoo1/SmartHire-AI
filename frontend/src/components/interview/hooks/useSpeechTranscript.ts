@@ -56,12 +56,16 @@ export function useSpeechTranscript(
     const r = new SR()
     r.continuous     = true
     r.interimResults = true
+<<<<<<< Updated upstream
     r.lang           = 'en-US'  // ✅ English
 
     r.onstart = () => {
       console.info('[Speech] Started listening (en-US)')
       setIsListening(true)
     }
+=======
+    r.lang           = 'en-US'   // đổi 'en-US' nếu cần
+>>>>>>> Stashed changes
 
     r.onresult = ({ results, resultIndex }: SpeechRecognitionEvent) => {
       for (let i = resultIndex; i < results.length; i++) {
@@ -81,6 +85,7 @@ export function useSpeechTranscript(
       // other errors: let onend handle restart
     }
 
+<<<<<<< Updated upstream
     r.onend = () => {
       console.info('[Speech] onend — activeRef:', activeRef.current)
       if (activeRef.current) {
@@ -88,6 +93,11 @@ export function useSpeechTranscript(
       } else {
         setIsListening(false)
       }
+=======
+    r.onerror = ({ error }: SpeechRecognitionErrorEvent) => {
+      if (error === 'no-speech') return   // bình thường, bỏ qua
+      if (error === 'not-allowed') { stop(); return }
+>>>>>>> Stashed changes
     }
 
     recogRef.current  = r

@@ -23,7 +23,7 @@ import { PermissionsModal } from './PermissionsModal'
 import { EndInterviewModal } from './EndInterviewModal'
 import { useMediaDevices } from './hooks/useMediaDevices'
 import { useSpeechTranscript } from './hooks/useSpeechTranscript'
-import { useSessionRecorder } from './hooks/useSessionRecorder'
+import { useSessionRecorder } from './hooks/useSessionRecorder.ts'
 import type { InterviewWorkspaceProps } from './types'
 
 const LeftPanel   = lazy(() => import('./LeftPanel').then((m) => ({ default: m.LeftPanel })))

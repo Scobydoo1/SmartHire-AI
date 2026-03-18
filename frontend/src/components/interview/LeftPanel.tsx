@@ -97,18 +97,19 @@ const MessageBubble = memo(function MessageBubble({ msg }: { msg: TranscriptMess
 // Panel
 // ---------------------------------------------------------------------------
 
+// LeftPanel.tsx — thêm isListening vào destructure props
 export const LeftPanel: React.FC<LeftPanelProps> = ({
   aiState: controlledState,
   transcript = DEFAULT_TRANSCRIPT,
+  isListening = false,   // ← thêm
 }) => {
-  // Use controlled state when supplied; fall back to the cycling mock.
   const { aiState, setAIState } = useAIState({ enabled: controlledState === undefined })
-  const activeState = controlledState ?? aiState
 
-  // Keep setAIState available if the parent switches to controlled mode later.
+  // Nếu đang lắng nghe mic user → override AI state thành 'listening'
+  const activeState = controlledState ?? (isListening ? 'listening' : aiState)
+
   void setAIState
 
-  // Auto-scroll to the latest transcript message.
   const bottomRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -119,17 +120,22 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
       className="flex h-full flex-col gap-4 border-r border-border bg-background/50 p-4"
       aria-label="AI interviewer panel"
     >
-      {/* AI Presence & State */}
       <Card className="flex h-1/3 items-center justify-center border-border bg-card/50 p-6">
         <AIAvatar state={activeState} />
       </Card>
 
-      {/* Live Transcript */}
       <Card className="flex flex-1 flex-col overflow-hidden border-border bg-card/30">
-        <div className="border-b border-border bg-card/80 p-3">
-          <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="flex items-center justify-between border-b border-border bg-card/80 p-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Live Transcript
           </h2>
+          {/* Indicator đang ghi âm */}
+          {isListening && (
+            <span className="flex items-center gap-1.5 text-xs text-emerald-500">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              Recording
+            </span>
+          )}
         </div>
         <ScrollArea className="flex-1 p-4">
           <div
@@ -141,7 +147,6 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
             {transcript.map((msg) => (
               <MessageBubble key={msg.id} msg={msg} />
             ))}
-            {/* Invisible anchor for auto-scroll */}
             <div ref={bottomRef} aria-hidden="true" />
           </div>
         </ScrollArea>
