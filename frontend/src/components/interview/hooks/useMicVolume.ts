@@ -7,14 +7,15 @@ export function useMicVolume(stream: MediaStream | null, isMuted: boolean): numb
   const [volume, setVolume] = useState(0)
   const rafRef              = useRef<number | null>(null)
   const lastTickRef         = useRef(0)
-  // ✅ Khai báo kiểu tường minh Uint8Array<ArrayBuffer>
   const dataRef             = useRef<Uint8Array<ArrayBuffer> | null>(null)
 
+  // Reset volume to 0 when no stream or muted — separate effect to avoid setState in effect body
   useEffect(() => {
-    if (!stream || isMuted) {
-      setVolume(0)
-      return
-    }
+    if (!stream || isMuted) setVolume(0)
+  }, [stream, isMuted])
+
+  useEffect(() => {
+    if (!stream || isMuted) return
 
     const ctx      = new AudioContext()
     const source   = ctx.createMediaStreamSource(stream)
@@ -23,13 +24,11 @@ export function useMicVolume(stream: MediaStream | null, isMuted: boolean): numb
     analyser.smoothingTimeConstant = 0.6
     source.connect(analyser)
 
-    // ✅ Tạo buffer với ArrayBuffer tường minh
     dataRef.current = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount))
 
     const tick = (timestamp: number) => {
       if (timestamp - lastTickRef.current >= THROTTLE_MS) {
         lastTickRef.current = timestamp
-        // ✅ TypeScript hài lòng vì dataRef.current là Uint8Array<ArrayBuffer>
         analyser.getByteFrequencyData(dataRef.current!)
 
         const data       = dataRef.current!

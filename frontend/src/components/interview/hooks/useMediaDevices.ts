@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 
 const SESSION_KEY = 'smarthire_media_granted'
 
-// Định nghĩa ngoài component — không tạo lại mỗi render
 const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
   width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user',
 }
@@ -11,7 +10,10 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
 }
 
 function stopVideoTracks(stream: MediaStream) {
-  stream.getVideoTracks().forEach((t) => { t.onended = null; try { t.stop() } catch {} })
+  stream.getVideoTracks().forEach((t) => {
+    t.onended = null
+    try { t.stop() } catch (_e) { /* intentionally ignored */ }
+  })
 }
 
 export interface UseMediaDevicesReturn {
@@ -36,12 +38,10 @@ export function useMediaDevices(): UseMediaDevicesReturn {
   const streamRef        = useRef<MediaStream | null>(null)
   const isRestartingRef  = useRef(false)
   const isCameraOffRef   = useRef(false)
-  // Lưu onended handler 1 lần — tái sử dụng cho mọi track mới
   const onEndedRef       = useRef<(() => void) | null>(null)
 
   useEffect(() => { isCameraOffRef.current = isCameraOff }, [isCameraOff])
 
-  // ── coreRestart: deps rỗng, chỉ đọc refs ─────────────────────────────────
   const coreRestart = useCallback(async () => {
     if (!streamRef.current || isRestartingRef.current) return
     isRestartingRef.current = true
@@ -58,21 +58,20 @@ export function useMediaDevices(): UseMediaDevicesReturn {
       streamRef.current.getVideoTracks().forEach((t) => streamRef.current!.removeTrack(t))
       streamRef.current.addTrack(nt)
 
-      // Tạo stream object mới → stream.id đổi → <video key={id}> re-mount
       const updated = new MediaStream([...streamRef.current.getAudioTracks(), nt])
       streamRef.current = updated
       setStream(updated)
       setIsCameraOff(false)
       setError(null)
-    } catch {
+    } catch (_e) {
+      /* intentionally ignored */
       setIsCameraOff(true)
       setError('Camera unavailable. Please re-enable your camera.')
     } finally {
       isRestartingRef.current = false
     }
-  }, []) // ← deps rỗng, không re-create
+  }, [])
 
-  // ── Tạo onended handler 1 lần duy nhất ───────────────────────────────────
   useEffect(() => {
     onEndedRef.current = () => {
       setIsCameraOff(true)
@@ -86,7 +85,6 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     if (onEndedRef.current) track.onended = onEndedRef.current
   }, [])
 
-  // ── startStream ───────────────────────────────────────────────────────────
   const startStream = useCallback(async (): Promise<MediaStream> => {
     const s = await navigator.mediaDevices.getUserMedia({
       video: VIDEO_CONSTRAINTS,
@@ -101,7 +99,6 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     return s
   }, [attachOnEnded])
 
-  // ── requestPermissions ────────────────────────────────────────────────────
   const requestPermissions = useCallback(async (): Promise<MediaStream> => {
     const s = await startStream()
     sessionStorage.setItem(SESSION_KEY, 'true')
@@ -109,7 +106,6 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     return s
   }, [startStream])
 
-  // ── Auto-start nếu session đã grant ──────────────────────────────────────
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY) !== 'true') return
     startStream()
@@ -118,7 +114,6 @@ export function useMediaDevices(): UseMediaDevicesReturn {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Lớp 1: devicechange ───────────────────────────────────────────────────
   useEffect(() => {
     const handler = () => {
       const vt = streamRef.current?.getVideoTracks()[0]
@@ -128,7 +123,6 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     return () => navigator.mediaDevices.removeEventListener('devicechange', handler)
   }, [coreRestart])
 
-  // ── Lớp 2: visibilitychange ───────────────────────────────────────────────
   useEffect(() => {
     const handler = () => {
       if (document.visibilityState !== 'visible') return
@@ -139,7 +133,6 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     return () => document.removeEventListener('visibilitychange', handler)
   }, [coreRestart])
 
-  // ── Lớp 3: Polling 2s safety net ─────────────────────────────────────────
   useEffect(() => {
     const id = setInterval(() => {
       const vt = streamRef.current?.getVideoTracks()[0]
@@ -151,21 +144,19 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     return () => clearInterval(id)
   }, [coreRestart])
 
-  // ── toggleMic ─────────────────────────────────────────────────────────────
   const toggleMic = useCallback(() => {
     streamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !t.enabled })
     setIsMicMuted((p) => !p)
   }, [])
 
-  // ── toggleCamera — thông minh check track state ───────────────────────────
   const toggleCamera = useCallback(async () => {
     const vt = streamRef.current?.getVideoTracks()[0]
     if (isCameraOffRef.current) {
       if (!vt || vt.readyState === 'ended') {
-        await coreRestart()          // track bị OS kill → restart
+        await coreRestart()
       } else {
         vt.enabled = true
-        setIsCameraOff(false)        // track còn sống → chỉ re-enable
+        setIsCameraOff(false)
       }
     } else {
       if (vt) vt.enabled = false
@@ -173,9 +164,11 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     }
   }, [coreRestart])
 
-  // ── stopAll ────────────────────────────────────────────────────────────────
   const stopAll = useCallback(() => {
-    streamRef.current?.getTracks().forEach((t) => { t.onended = null; try { t.stop() } catch {} })
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null
+      try { t.stop() } catch (_e) { /* intentionally ignored */ }
+    })
     streamRef.current = null
     setStream(null)
     setGranted(false)
@@ -185,9 +178,11 @@ export function useMediaDevices(): UseMediaDevicesReturn {
     sessionStorage.removeItem(SESSION_KEY)
   }, [])
 
-  // Cleanup unmount
   useEffect(() => () => {
-    streamRef.current?.getTracks().forEach((t) => { t.onended = null; try { t.stop() } catch {} })
+    streamRef.current?.getTracks().forEach((t) => {
+      t.onended = null
+      try { t.stop() } catch (_e) { /* intentionally ignored */ }
+    })
   }, [])
 
   return { stream, isMicMuted, isCameraOff, permissionsGranted, error,

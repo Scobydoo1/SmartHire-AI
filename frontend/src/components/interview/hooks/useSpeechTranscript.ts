@@ -11,8 +11,15 @@ interface UseSpeechTranscriptReturn {
   clearTranscript: () => void
 }
 
-const getSR = (): (new () => SpeechRecognition) | null =>
-  (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: new () => SpeechRecognition
+  webkitSpeechRecognition?: new () => SpeechRecognition
+}
+
+const getSR = (): (new () => SpeechRecognition) | null => {
+  const w = window as SpeechRecognitionWindow
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
+}
 
 export function useSpeechTranscript(
   stream: MediaStream | null,

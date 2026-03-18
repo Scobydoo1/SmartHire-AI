@@ -15,7 +15,7 @@ interface ImportMeta {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Web Speech API — không có sẵn trong lib.dom.d.ts đầy đủ
+// Web Speech API
 // ─────────────────────────────────────────────────────────────────────────────
 interface SpeechRecognitionEventMap {
   audioend:    Event
@@ -111,7 +111,6 @@ declare var SpeechGrammarList: {
   new (): SpeechGrammarList
 }
 
-// Webkit prefix
 interface Window {
   SpeechRecognition:       typeof SpeechRecognition
   webkitSpeechRecognition: typeof SpeechRecognition
